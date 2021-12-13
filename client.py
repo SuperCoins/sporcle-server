@@ -21,9 +21,7 @@ class Client:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((self.IP, self.PORT))
         self.socket.setblocking(False)  # Receive won't be blocking
-        encoded_username = encode(self.username)
-        username_header = encode(f"{len(encoded_username):<{self.HEADER_LENGTH}}")
-        self.socket.send(username_header + encoded_username)
+        self.send_message(self.username)
 
     def send_message(self, message):
         message = encode(message)
@@ -59,6 +57,7 @@ class Client:
             except Exception as e:
                 print("General error", str(e))
                 sys.exit()
+
 
 client = Client()
 client.listen()
