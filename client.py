@@ -1,53 +1,64 @@
 import socket
-import select
 import errno
 import sys
 
-HEADER_LENGTH = 10
-IP = "127.0.0.1"
-PORT = 1234
 
-my_username = input("Username: ")
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect((IP, PORT))
-client_socket.setblocking(False)  # Receive won't be blocking
+def decode(message: str):
+    return message.decode("utf-8")
 
-username = my_username.encode("utf-8")
-username_header = f"{len(username):<{HEADER_LENGTH}}".encode("utf-8")
-client_socket.send(username_header + username)
 
-while True:
-    message = input(f"{my_username} > ")
+def encode(message: str):
+    return message.encode("utf-8")
 
-    if message:
-        message = message.encode("utf-8")
-        message_header = f"{len(message):<{HEADER_LENGTH}}".encode("utf-8")
-        client_socket.send(message_header + message)
 
-    try:
+class Client:
+    HEADER_LENGTH = 10
+    IP = "127.0.0.1"
+    PORT = 1234
+
+    def __init__(self):
+        self.username = input("Username: ")
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.connect((self.IP, self.PORT))
+        self.socket.setblocking(False)  # Receive won't be blocking
+        encoded_username = encode(self.username)
+        username_header = encode(f"{len(encoded_username):<{self.HEADER_LENGTH}}")
+        self.socket.send(username_header + encoded_username)
+
+    def send_message(self, message):
+        message = encode(message)
+        message_header = encode(f"{len(message):<{self.HEADER_LENGTH}}")
+        self.socket.send(message_header + message)
+
+    def receive_message(self):
+        message_header = self.socket.recv(self.HEADER_LENGTH)
+        if not len(message_header):
+            print("connection closed by the server")
+            sys.exit()
+        message_length = int(decode(message_header))
+        message = decode(self.socket.recv(message_length))
+        return message
+
+    def listen(self):
         while True:
-            # receive things here
-            username_header = client_socket.recv(HEADER_LENGTH)
-            if not len(username_header):
-                print("connection closed by the server")
+            message = input(f"{self.username} > ")
+            if message:
+                self.send_message(message)
+            try:
+                while True:
+                    username = self.receive_message()
+                    message = self.receive_message()
+                    print(f"{username} > {message}")
+            except IOError as e:
+                # there are no more messages to be received
+                if e.errno != errno.EAGAIN and e.errno != errno.EWOULDBLOCK:
+                    print("Reading error", str(e))
+                    sys.exit()
+                continue  # these errors are fine, continue
+
+            except Exception as e:
+                print("General error", str(e))
                 sys.exit()
 
-            username_length = int(username_header.decode("utf-8"))
-            username = client_socket.recv(username_length).decode("utf-8")
-
-            message_header = client_socket.recv(HEADER_LENGTH)
-            message_length = int(message_header.decode("utf-8"))
-            message = client_socket.recv(message_length).decode("utf-8")
-
-            print(f"{username} > {message}")
-
-    except IOError as e:
-        # there are no more messages to be received
-        if e.errno != errno.EAGAIN and e.errno != errno.EWOULDBLOCK:
-            print("Reading error", str(e))
-            sys.exit()
-        continue  # these errors are fine, continue
-
-    except Exception as e:
-        print("General error", str(e))
-        sys.exit()
+client = Client()
+client.listen()
