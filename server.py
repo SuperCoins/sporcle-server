@@ -1,5 +1,6 @@
 import socket
 import select
+import constants
 
 
 def decode(message: str):
@@ -7,9 +8,6 @@ def decode(message: str):
 
 
 class Server:
-    HEADER_LENGTH = 10
-    IP = "127.0.0.1"
-    PORT = 1234
     sockets_list = []
     clients = {}  # key is socket id, value is user info
 
@@ -17,14 +15,14 @@ class Server:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # Allows the server to reconnect to the same address
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.socket.bind((self.IP, self.PORT))
+        self.socket.bind((constants.IP, constants.PORT))
         self.socket.listen()
         self.sockets_list.append(self.socket)
 
     # each message has a header with the length of the message, followed by the message
     def receive_message(self, client_socket):
         try:
-            message_header = client_socket.recv(self.HEADER_LENGTH)
+            message_header = client_socket.recv(constants.HEADER_LENGTH)
             # if there is no header then the client has sent nothing and has closed the connection
             if not len(message_header):
                 return False

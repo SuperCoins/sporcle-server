@@ -1,6 +1,7 @@
 import socket
 import errno
 import sys
+import constants
 
 
 def decode(message: str):
@@ -12,24 +13,20 @@ def encode(message: str):
 
 
 class Client:
-    HEADER_LENGTH = 10
-    IP = "127.0.0.1"
-    PORT = 1234
-
     def __init__(self):
         self.username = input("Username: ")
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect((self.IP, self.PORT))
+        self.socket.connect((constants.IP, constants.PORT))
         self.socket.setblocking(False)  # Receive won't be blocking
         self.send_message(self.username)
 
     def send_message(self, message):
         message = encode(message)
-        message_header = encode(f"{len(message):<{self.HEADER_LENGTH}}")
+        message_header = encode(f"{len(message):<{constants.HEADER_LENGTH}}")
         self.socket.send(message_header + message)
 
     def receive_message(self):
-        message_header = self.socket.recv(self.HEADER_LENGTH)
+        message_header = self.socket.recv(constants.HEADER_LENGTH)
         if not len(message_header):
             print("connection closed by the server")
             sys.exit()

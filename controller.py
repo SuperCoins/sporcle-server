@@ -1,12 +1,14 @@
 import socket
 import errno
 import sys
+import constants
 
+quiz_loaded = {"code": "quiz_loaded", "pretty": "Load the quiz"}
 quiz_start = {"code": "quiz_start", "pretty": "Start the quiz"}
 quiz_end = {"code": "quiz_end", "pretty": "End the quiz"}
 quiz_pause = {"code": "quiz_pause", "pretty": "Pause the quiz"}
 quiz_unpause = {"code": "quiz_end", "pretty": "Unpause the quiz"}
-controller_options = [quiz_start, quiz_end, quiz_pause, quiz_unpause]
+controller_options = [quiz_loaded, quiz_start, quiz_end, quiz_pause, quiz_unpause]
 
 
 def decode(message: str):
@@ -18,24 +20,20 @@ def encode(message: str):
 
 
 class Controller:
-    HEADER_LENGTH = 10
-    IP = "127.0.0.1"
-    PORT = 1234
-
     def __init__(self):
         self.username = "controller"
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect((self.IP, self.PORT))
+        self.socket.connect((constants.IP, constants.PORT))
         self.socket.setblocking(False)  # Receive won't be blocking
         self.send_message(self.username)
 
     def send_message(self, message):
         message = encode(message)
-        message_header = encode(f"{len(message):<{self.HEADER_LENGTH}}")
+        message_header = encode(f"{len(message):<{constants.HEADER_LENGTH}}")
         self.socket.send(message_header + message)
 
     def receive_message(self):
-        message_header = self.socket.recv(self.HEADER_LENGTH)
+        message_header = self.socket.recv(constants.HEADER_LENGTH)
         if not len(message_header):
             print("connection closed by the server")
             sys.exit()
