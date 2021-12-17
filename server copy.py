@@ -1,7 +1,13 @@
 import socket
 import select
+import asyncio
+import websockets
 import constants
 
+async def handler(websocket):
+    while True:
+        message = await websocket.recv()
+        print(message)
 
 def decode(message: str):
     return message.decode("utf-8")

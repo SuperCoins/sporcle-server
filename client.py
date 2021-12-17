@@ -21,7 +21,13 @@ class Client:
         self.send_message(self.username)
 
     def send_message(self, message):
+        print(message)
         message = encode(message)
+        print(message)
+        header = f"{len(message):<{constants.HEADER_LENGTH}}"
+        print(header)
+        header = encode(header)
+        print(header)
         message_header = encode(f"{len(message):<{constants.HEADER_LENGTH}}")
         self.socket.send(message_header + message)
 
