@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <title>Sporcle Server</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
 
-<head>
-  <title>Sporcle Server</title>
-</head>
-
-<body>
-  <div id="quiz-buttons"/>
-  <input id="quiz-input" placeholder="What's the answer?"/>
-  <script src="main.js"
-          type="module"></script>
-</body>
-
+  <body>
+    <h1 id="title">Sporcle Together</h1>
+    <h2 id="control-title">Quiz Controls</h2>
+    <div id="control-buttons" class="element-list"></div>
+    <h2 id="input-title">Quiz Inputs</h2>
+    <button id='add-player'>Add Player</button>
+    <div id="inputs" class="element-list"></div>
+    <script src="main.js" type="module"></script>
+  </body>
 </html>

@@ -1,0 +1,40 @@
+body {
+  display: grid;
+  grid-template:
+    "title title title"
+    "control-title input-title add-player"
+    "control-buttons inputs inputs"
+    / 1fr 1fr auto;
+}
+
+#title {
+  grid-area: title;
+}
+
+#control-title {
+  grid-area: control-title;
+}
+
+#control-buttons {
+  grid-area: control-buttons;
+}
+
+#input-title {
+  grid-area: input-title;
+}
+
+#add-player {
+  grid-area: add-player;
+  align-self: center;
+}
+
+#inputs {
+  grid-area: inputs;
+}
+
+.element-list {
+  display: grid;
+  justify-content: start;
+  align-content: start;
+  row-gap: 5px;
+}
