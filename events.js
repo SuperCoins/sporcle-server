@@ -34,3 +34,11 @@ export const quizInput = {
     return input;
   }
 }
+
+export const serverInit = {
+  type: 'init',
+  data() {
+    const params = new URLSearchParams(window.location.search);
+    return params.has("join") ? params.get("join") : undefined
+  }
+}

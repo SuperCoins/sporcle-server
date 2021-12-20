@@ -1,6 +1,6 @@
-message = input(
-    """1: quiz-start
-2: quiz-end
-please do a thing: """
-)
-print(message)
+JOIN = {}
+JOIN['hello'] = 'test', {'oh my'}
+print(JOIN)
+thing, thing2 = JOIN['hello']
+thing2.add('another')
+print(JOIN)

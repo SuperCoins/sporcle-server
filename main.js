@@ -1,23 +1,40 @@
-import {quizEvents, quizInput} from './events.js'
+import {quizEvents, quizInput, serverInit} from './events.js'
 
 let websocket;
+let serverId;
 
 window.addEventListener("DOMContentLoaded", () => {
   // Open the WebSocket connection and register event handlers.
   websocket = new WebSocket("ws://localhost:8080/");
+  init()
   addButtons()
   addNewPlayerEvent()
   addInput()
+  handleMessage()
+});
+
+function init() {
+  websocket.addEventListener("open", ({ data }) => {
+    console.log('[open] ', data)
+    const message = {
+      type: serverInit.type,
+      data: serverInit.data()
+    }
+    sendMessage(message)
+  });
+}
+
+function handleMessage() {
   websocket.addEventListener("message", ({ data }) => {
     const event = JSON.parse(data)
-    // do something with event
     console.log('[message] ', event)
+    switch (event.type) {
+      case 'init':
+        document.querySelector("#join").href = `?join=${event.data}`
+        break;
+    }
   });
-  websocket.addEventListener("open", ({ data }) => {
-    // do something with event
-    console.log('[open] ', data)
-  });
-});
+}
 
 function addButtons() {
   const controlButtonsDiv = document.querySelector("#control-buttons");

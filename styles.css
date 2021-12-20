@@ -1,7 +1,7 @@
 body {
   display: grid;
   grid-template:
-    "title title title"
+    "title title join"
     "control-title input-title add-player"
     "control-buttons inputs inputs"
     / 1fr 1fr auto;
@@ -9,6 +9,12 @@ body {
 
 #title {
   grid-area: title;
+}
+
+#join {
+  grid-area: join;
+  align-self: center;
+  justify-self: end;
 }
 
 #control-title {
