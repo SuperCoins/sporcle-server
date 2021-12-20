@@ -13,7 +13,7 @@ async def error(websocket, message):
 async def handler(websocket, path):
     event = await receiveMessage(websocket)
     assert event["type"] == "init"
-    if "data" in event :
+    if "data" in event:
         await join(websocket, event["data"])
     else:
         await start(websocket)
