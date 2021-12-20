@@ -26,3 +26,11 @@ export const quizEvents = [
   quiz_pause,
   quiz_unpause,
 ];
+
+export const quizInput = {
+  type: "input",
+  pretty: "What's the answer?",
+  data(input) {
+    return input;
+  }
+}

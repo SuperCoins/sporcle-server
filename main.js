@@ -1,9 +1,12 @@
-import {quizEvents} from './events.js'
+import {quizEvents, quizInput} from './events.js'
+
+let websocket;
 
 window.addEventListener("DOMContentLoaded", () => {
   // Open the WebSocket connection and register event handlers.
-  const websocket = new WebSocket("ws://localhost:8080/");
-  addButtons(websocket)
+  websocket = new WebSocket("ws://localhost:8080/");
+  addButtons()
+  addInputEvents()
   websocket.addEventListener("message", ({ data }) => {
     const event = JSON.parse(data)
     // do something with event
@@ -15,22 +18,33 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-function addButtons(websocket) {
-  const body = document.querySelector("body");
+function addButtons() {
+  const body = document.querySelector("#quiz-buttons");
   quizEvents.forEach(quizEvent => {
     const node = document.createElement('button')
     node.id = quizEvent.type
     node.appendChild(document.createTextNode(quizEvent.pretty))
-    // (`<button id="${quizEvent.type}">${quizEvent.pretty}</button>`);
-    buttonEvent(node, quizEvent, websocket)
+    addButtonEvents(node, quizEvent)
     body.append(node)
   });
 }
 
-function buttonEvent(element, {type, data}, websocket) {
+function addButtonEvents(element, {type, data}) {
   element.addEventListener('click', () => {
-    const event = JSON.stringify({type, data});
-    console.log('(sending) ', event)
-    websocket.send(event)
+    sendMessage({type, data})
   });
+}
+
+function addInputEvents() {
+  const input = document.querySelector('#quiz-input')
+  input.addEventListener('input', event => {
+    const message = event.target.value
+    sendMessage({type: quizInput.type, data: quizInput.data(message)})
+  })
+}
+
+function sendMessage(message) {
+  const messageString = JSON.stringify(message)
+  console.log('(sending) ', messageString)
+  websocket.send(messageString)
 }
