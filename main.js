@@ -1,10 +1,8 @@
 import {quizEvents, quizInput, serverInit} from './events.js'
 
 let websocket;
-let serverId;
 
 window.addEventListener("DOMContentLoaded", () => {
-  // Open the WebSocket connection and register event handlers.
   websocket = new WebSocket("ws://localhost:8080/");
   init()
   addButtons()
