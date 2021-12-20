@@ -1,9 +1,14 @@
+import websockets
+import json
+import messages
+
 class Server:
-    server_id = ''
+    id = ''
     players = []
 
-    def __init__(self, id):
-        self.server_id = id
+    def __init__(self, id, host):
+        self.id = id
+        self.host = host
 
     def add_player(self, player):
       self.players.append(player)
@@ -11,4 +16,4 @@ class Server:
     
     def remove_player(self, player):
       self.players.remove(player)
-      print("player was removed from the game")
+      messages.broadcast(self.players, {"type": "player_left", "data": "player has left the game"})

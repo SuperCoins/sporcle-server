@@ -1,53 +1,38 @@
 import asyncio
 import websockets
-import json
 import secrets
+import messages
 
 from server import Server
 
 SERVERS = {}
 
 
-def readMessage(message):
-    event = json.loads(message)
-    print("[" + event["type"] + "] " + message)
-    return event
-
-
-async def sendMessage(message, websocket):
-    await websocket.send(json.dumps(message))
-    print("(sent) ", message)
-
-
 async def handler(websocket):
     message = await websocket.recv()
-    event = readMessage(message)
+    event = messages.read(message)
     assert event["type"] == "init"
     if "data" in event:
         await join(websocket, event["data"])
     else:
-        await start(websocket)
+        await host(websocket)
 
 
 async def sendError(player, message):
     event = {"type": "error", "message": message}
-    await sendMessage(event, player)
+    await messages.send(player, event)
 
 
-async def start(player):
+async def host(host):
     join_key = secrets.token_urlsafe(12)
-    server = Server(join_key)
+    server = Server(join_key, host)
     SERVERS[join_key] = server
-    server.add_player(player)
     try:
         event = {"type": "init", "data": join_key}
-        await sendMessage(event, player)
-        await play(player, server)
+        await messages.send(host, event)
+        await play_host(host, server)
     except:
-        sendError(player, "Something went wrong creating a server.")
-    finally:
-        del SERVERS[join_key]
-
+        sendError(host, "Something went wrong creating a server.")
 
 async def join(player, join_key):
     try:
@@ -57,14 +42,23 @@ async def join(player, join_key):
         return
 
     server.add_player(player)
-    play(player, server)
+    await play(player, server)
+
+async def play_host(host, server):
+    try:
+        async for message in host:
+            event = messages.read(message)
+            await messages.send(host, "thanks for the message")
+    finally:
+        print('Host left, shutting down server')
+        del SERVERS[server.id]
 
 
 async def play(player, server):
     try:
         async for message in player:
-            event = readMessage(message)
-            await sendMessage("thanks for the message", player)
+            event = messages.read(message)
+            await messages.send(player, "thanks for the message")
     finally:
         server.remove_player(player)
 
