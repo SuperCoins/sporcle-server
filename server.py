@@ -1,5 +1,3 @@
-import websockets
-import json
 import messages
 
 
@@ -24,6 +22,7 @@ class Server:
         self.name_dict[player_name] = player
         await messages.send(player, {"type": "room joined", "data": self.code})
         await messages.send(self.host, {"type": "player_joined", "data": player_name})
+        await self.send_room_info()
 
     async def remove_player(self, player):
         player_name = self.player_dict[player]
@@ -31,9 +30,16 @@ class Server:
         del self.player_dict[player]
         del self.name_dict[player_name]
         await messages.send(self.host, {"type": "player_left", "data": player_name})
+        await self.send_room_info()
 
     async def send_room_info(self):
-        event = {"type": "room info", "data": {"room": {"code": self.code}}}
+        event = {
+            "type": "room info",
+            "data": {
+                "room": {"code": self.code},
+                "players": list(self.name_dict.keys()),
+            },
+        }
         await messages.send(self.host, event)
 
     async def answer(self, answer, player):
