@@ -15,7 +15,7 @@ function onServerOpen() {
     if (params.has("room")) server.joinRoom(params.get('room'))
     page.room.input.addEventListener('input', onRoomCode)
     page.room.button.addEventListener('click', onRoomButton)
-    page.quizControls.loaded.addEventListener('click', server.quiz.loaded)
+    page.quizControls.info.addEventListener('click', server.quiz.info)
     page.quizControls.start.addEventListener('click', server.quiz.start)
     page.quizControls.end.addEventListener('click', server.quiz.end)
     page.quizControls.pause.addEventListener('click', server.quiz.pause)
