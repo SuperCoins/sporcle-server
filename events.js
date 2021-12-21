@@ -35,9 +35,13 @@ export const quizInput = {
     }
 }
 
-export const serverInit = {
-    type: 'init',
-    data(serverId) {
-        return serverId ? ? undefined
+export const createRoom = {
+    type: "create room"
+}
+
+export const joinRoom = {
+    type: "join room",
+    data(roomCode) {
+        return roomCode
     }
 }

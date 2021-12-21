@@ -1,10 +1,28 @@
 body {
     display: grid;
-    grid-template: "title title join" "input-title control-title control-title" "inputs control-buttons control-buttons" / 500px auto;
+    grid-template: "title title room-container" "input-title control-title control-title" "inputs control-buttons control-buttons" / 500px auto;
 }
 
 #title {
     grid-area: title;
+}
+
+#room-container {
+    grid-area: room-container;
+    display: grid;
+    grid-template: "room-code room-button" / 1fr auto;
+}
+
+#room-code {
+    grid-area: room-code;
+    align-self: center;
+    justify-self: end;
+}
+
+#room-button {
+    grid-area: room-button;
+    align-self: center;
+    justify-self: end;
 }
 
 #join {

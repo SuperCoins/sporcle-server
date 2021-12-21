@@ -21,3 +21,4 @@ async def broadcast(sockets, message):
 async def error(websocket, message):
     event = {"type": "error", "data": message}
     await send(websocket, event)
+    print('!error!: ', message)

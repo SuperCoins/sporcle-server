@@ -13,11 +13,12 @@ SERVERS = {}
 async def handler(websocket):
     message = await websocket.recv()
     event = messages.read(message)
-    assert event["type"] == "init"
-    if "data" in event:
+    if event["type"] == "join room":
         await join(websocket, event["data"])
-    else:
+    elif event["type"] == "create room":
         await host(websocket)
+    else:
+        await messages.error(websocket, "Please create or join a room first")
 
 
 async def host(host):
@@ -25,11 +26,11 @@ async def host(host):
     server = Server(join_key, host)
     SERVERS[join_key] = server
     try:
-        event = {"type": "init", "data": join_key}
-        await messages.send(host, event)
+        await server.room_created()
         await play_host(host, server)
-    except:
-        messages.error(host, "Something went wrong creating a server.")
+    except Exception as e:
+        print(e)
+        await messages.error(host, "Something went wrong creating a server.")
 
 
 async def join(player, join_key):

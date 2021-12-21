@@ -1,14 +1,16 @@
-import { quizEvents, quizInput, serverInit } from './events.js'
+import { createRoom as createRoomMessage, joinRoom as joinRoomMessage, quizEvents, quizInput } from './events.js'
 
-const params = new URLSearchParams(window.location.search);
-const isHost = !params.has("join");
-let serverId = params.get("join") ? ? undefined;
+let isHost = false
+let roomCode = ''
 
 let websocket;
 
 window.addEventListener("DOMContentLoaded", () => {
     websocket = new WebSocket(getWebSocketServer());
-    init()
+    readUrlParams()
+    onOpen()
+    onRoomCode()
+    onRoomButton()
     addButtons()
     if (!isHost) addInput()
     if (isHost) updateHostView()
@@ -16,15 +18,63 @@ window.addEventListener("DOMContentLoaded", () => {
     handleMessage()
 });
 
-function init() {
+function readUrlParams() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("room")) joinRoom(params.get('room'))
+}
+
+function updateRoomCode(code) {
+    roomCode = code
+    const roomCodeInput = document.querySelector('#room-code')
+    roomCodeInput.value = roomCode
+}
+
+function onOpen() {
     websocket.addEventListener("open", ({ data }) => {
         console.log('[open] ', data)
-        const message = {
-            type: serverInit.type,
-            data: serverInit.data(serverId)
-        }
-        sendMessage(message)
     });
+}
+
+function onRoomCode() {
+    const roomCodeInput = document.querySelector('#room-code')
+    const roomButton = document.querySelector('#room-button')
+    roomCodeInput.addEventListener('input', event => {
+        const inputValue = event.target.value
+        roomButton.textContent = inputValue ? 'Join Room' : 'Create Room'
+    })
+}
+
+function onRoomButton() {
+    const roomButton = document.querySelector('#room-button')
+    const roomCodeInput = document.querySelector('#room-code')
+    roomButton.addEventListener('click', () => {
+        if (roomCodeInput.value) joinRoom(roomCodeInput.value)
+        else createRoom()
+    })
+}
+
+function removeRoomButton() {
+    const roomButton = document.querySelector('#room-button')
+    roomButton.remove()
+    const roomCodeInput = document.querySelector('#room-code')
+    roomCodeInput.disabled = true
+    const roomCodeLabel = document.querySelector('#room-label')
+    roomCodeLabel.disabled = false
+}
+
+function createRoom() {
+    const message = {
+        type: createRoomMessage.type
+    }
+    sendMessage(message)
+}
+
+function joinRoom(roomCode) {
+    const message = {
+        type: joinRoomMessage.type,
+        data: joinRoomMessage.data(roomCode)
+    }
+    sendMessage(message)
 }
 
 function updateTitle() {
@@ -46,9 +96,16 @@ function handleMessage() {
         const event = JSON.parse(data)
         console.log('[message] ', event)
         switch (event.type) {
-            case 'init':
-                serverId = event.data
-                document.querySelector("#join").href = `?join=${serverId}`
+            case 'room created':
+                isHost = true
+                removeRoomButton()
+                break;
+            case 'room joined':
+                isHost = false
+                removeRoomButton()
+                break;
+            case 'room info':
+                updateRoomCode(event.data.room.code)
                 break;
             case 'player_joined':
                 addInput(event.data)
@@ -83,7 +140,7 @@ function addButtonEvents(element, { type, data }) {
 function addInput(name = '') {
     const inputDiv = document.querySelector('#inputs')
     const playerNumber = inputDiv.childElementCount + 1
-    const playerIdentifier = name ? ? `player-${playerNumber}`
+    const playerIdentifier = name || `player-${playerNumber}`
     const playerDiv = document.createElement('div')
     playerDiv.className = 'player-input'
     playerDiv.id = `${playerIdentifier}-div`
