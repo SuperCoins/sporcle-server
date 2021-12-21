@@ -1,26 +1,61 @@
-import { createRoom as createRoomMessage, joinRoom as joinRoomMessage, quizEvents, quizInput } from './events.js'
+import Server from './server.js'
 import * as page from './page-elements.js'
 
 let isHost = false
 let roomCode = ''
-
-let websocket;
+let server;
 
 window.addEventListener("DOMContentLoaded", () => {
-    websocket = new WebSocket(getWebSocketServer());
-    websocket.addEventListener('open', event => {
-        console.log('[open] ', event.data)
-        readUrlParams()
-        onRoomCode()
-        onRoomButton()
-        addButtons()
-        handleMessage()
-    })
+    const websocket = new WebSocket(getWebSocketServer());
+    server = new Server(websocket, onServerOpen, onServerMessage)
 });
 
-function readUrlParams() {
+function onServerOpen() {
     const params = new URLSearchParams(window.location.search);
-    if (params.has("room")) joinRoom(params.get('room'))
+    if (params.has("room")) server.joinRoom(params.get('room'))
+    page.room.input.addEventListener('input', onRoomCode)
+    page.room.button.addEventListener('click', onRoomButton)
+    page.quizControls.loaded.addEventListener('click', server.quiz.loaded)
+    page.quizControls.start.addEventListener('click', server.quiz.start)
+    page.quizControls.end.addEventListener('click', server.quiz.end)
+    page.quizControls.pause.addEventListener('click', server.quiz.pause)
+    page.quizControls.unpause.addEventListener('click', server.quiz.unpause)
+}
+
+function onServerMessage({ data }) {
+    const event = JSON.parse(data)
+    switch (event.type) {
+        case 'room created':
+            isHost = true
+            updateRoomCode(event.data)
+            updateRoomButton()
+            page.quizControls.buttons.style.display = 'grid'
+            page.quizControls.title.style.display = 'unset'
+            page.title.textContent += ' (Host)'
+            break;
+        case 'room joined':
+            isHost = false
+            updateRoomCode(event.data)
+            page.room.button.remove()
+            page.room.input.disabled = true
+            page.room.label.hidden = false
+            addInput()
+            break;
+        case 'room info':
+            updateRoomCode(event.data.room.code)
+            break;
+        case 'player_joined':
+            addInput(event.data)
+            break;
+        case 'player_left':
+            const playerDiv = document.querySelector(`#${event.data}-div`)
+            if (playerDiv) playerDiv.remove()
+            break;
+        case 'answer':
+            const inputElement = document.querySelector(`#${event.player}`)
+            inputElement.value = event.data;
+            break;
+    }
 }
 
 function updateRoomCode(code) {
@@ -28,24 +63,13 @@ function updateRoomCode(code) {
     page.room.input.value = roomCode
 }
 
-function onRoomCode() {
-    page.room.input.addEventListener('input', event => {
-        const inputValue = event.target.value
-        page.room.button.textContent = inputValue ? 'Join Room' : 'Create Room'
-    })
+function onRoomCode(event) {
+    page.room.button.textContent = event.target.value ? 'Join Room' : 'Create Room'
 }
 
 function onRoomButton() {
-    page.room.button.addEventListener('click', () => {
-        if (page.room.input.value) joinRoom(page.room.input.value)
-        else createRoom()
-    })
-}
-
-function removeRoomButton() {
-    page.room.button.remove()
-    page.room.input.disabled = true
-    page.room.label.hidden = false
+    if (page.room.input.value) server.joinRoom(page.room.input.value)
+    else server.createRoom()
 }
 
 function updateRoomButton() {
@@ -57,82 +81,6 @@ function updateRoomButton() {
     page.connect.button.textContent = 'Connect to Room'
     page.connect.tag.appendChild(page.connect.button)
     page.room.button.replaceWith(page.connect.tag)
-}
-
-function createRoom() {
-    const message = {
-        type: createRoomMessage.type
-    }
-    sendMessage(message)
-}
-
-function joinRoom(roomCode) {
-    const message = {
-        type: joinRoomMessage.type,
-        data: joinRoomMessage.data(roomCode)
-    }
-    sendMessage(message)
-}
-
-function updateTitle() {
-    if (isHost) {
-        page.title.textContent += ' (Host)'
-    }
-}
-
-function updateHostView() {
-    page.quizControls.buttons.style.display = 'grid'
-    page.quizControls.title.style.display = 'unset'
-}
-
-function handleMessage() {
-    websocket.addEventListener("message", ({ data }) => {
-        const event = JSON.parse(data)
-        console.log('[message] ', event)
-        switch (event.type) {
-            case 'room created':
-                isHost = true
-                updateRoomCode(event.data)
-                updateRoomButton()
-                updateHostView()
-                updateTitle()
-                break;
-            case 'room joined':
-                isHost = false
-                updateRoomCode(event.data)
-                removeRoomButton()
-                addInput()
-                break;
-            case 'room info':
-                updateRoomCode(event.data.room.code)
-                break;
-            case 'player_joined':
-                addInput(event.data)
-                break;
-            case 'player_left':
-                removeInput(event.data)
-                break;
-            case 'answer':
-                updateAnswer(event.data, event.player)
-                break;
-        }
-    });
-}
-
-function addButtons() {
-    quizEvents.forEach(quizEvent => {
-        const node = document.createElement('button')
-        node.id = quizEvent.type
-        node.appendChild(document.createTextNode(quizEvent.pretty))
-        addButtonEvents(node, quizEvent)
-        page.quizControls.buttons.append(node)
-    });
-}
-
-function addButtonEvents(element, { type, data }) {
-    element.addEventListener('click', () => {
-        sendMessage({ type, data })
-    });
 }
 
 function addInput(name = '') {
@@ -147,38 +95,13 @@ function addInput(name = '') {
     playerInput.id = playerIdentifier
     playerInput.placeholder = "What's the answer?"
     playerInput.disabled = isHost
-    addInputEvent(playerInput)
+    playerInput.addEventListener('input', event => {
+        const inputValue = event.target.value
+        server.submitAnswer(inputValue)
+    })
     playerDiv.appendChild(playerLabel)
     playerDiv.appendChild(playerInput)
     page.quizInputs.div.appendChild(playerDiv)
-}
-
-function removeInput(name = '') {
-    const playerDiv = document.querySelector(`#${name}-div`)
-    if (playerDiv) playerDiv.remove()
-}
-
-function addInputEvent(node) {
-    node.addEventListener('input', event => {
-        const inputValue = event.target.value
-        const message = {
-            type: quizInput.type,
-            data: quizInput.data(inputValue),
-            player: node.id,
-        }
-        sendMessage(message)
-    })
-}
-
-function updateAnswer(answer, player) {
-    const inputElement = document.querySelector(`#${player}`)
-    inputElement.value = answer;
-}
-
-function sendMessage(message) {
-    const messageString = JSON.stringify(message)
-    websocket.send(messageString)
-    console.log('(sent) ', message)
 }
 
 function getWebSocketServer() {

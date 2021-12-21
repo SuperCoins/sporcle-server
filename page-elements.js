@@ -13,6 +13,11 @@ export const connect = {
 
 export const quizControls = {
     title: document.querySelector('#control-title'),
+    loaded: document.querySelector('#quiz-loaded'),
+    start: document.querySelector('#quiz-start'),
+    end: document.querySelector('#quiz-end'),
+    pause: document.querySelector('#quiz-pause'),
+    unpause: document.querySelector('#quiz-unpause'),
     buttons: document.querySelector('#control-buttons'),
 }
 
