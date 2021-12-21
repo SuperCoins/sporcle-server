@@ -12,9 +12,6 @@ window.addEventListener("DOMContentLoaded", () => {
     onRoomCode()
     onRoomButton()
     addButtons()
-    if (!isHost) addInput()
-    if (isHost) updateHostView()
-    updateTitle()
     handleMessage()
 });
 
@@ -59,7 +56,7 @@ function removeRoomButton() {
     const roomCodeInput = document.querySelector('#room-code')
     roomCodeInput.disabled = true
     const roomCodeLabel = document.querySelector('#room-label')
-    roomCodeLabel.disabled = false
+    roomCodeLabel.hidden = false
 }
 
 function createRoom() {
@@ -99,10 +96,13 @@ function handleMessage() {
             case 'room created':
                 isHost = true
                 removeRoomButton()
+                updateHostView()
+                updateTitle()
                 break;
             case 'room joined':
                 isHost = false
                 removeRoomButton()
+                addInput()
                 break;
             case 'room info':
                 updateRoomCode(event.data.room.code)
