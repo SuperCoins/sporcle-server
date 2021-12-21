@@ -2,6 +2,8 @@ import asyncio
 import websockets
 import secrets
 import messages
+import os
+import signal
 
 from server import Server
 
@@ -59,8 +61,14 @@ async def play(player, server):
 
 
 async def main():
-    async with websockets.serve(handler, "", 8080):
-        await asyncio.Future()
+    # Set the stop condition when receiving SIGTERM.
+    loop = asyncio.get_running_loop()
+    stop = loop.create_future()
+    loop.add_signal_handler(signal.SIGTERM, stop.set_result, None)
+
+    port = int(os.environ.get("PORT", "8080"))
+    async with websockets.serve(handler, "", port):
+        await stop
 
 
 if __name__ == "__main__":
