@@ -57,7 +57,7 @@ async def play(player, server):
     try:
         async for message in player:
             event = messages.read(message)
-            if event["type"] == "answer":
+            if event["type"] == "submit answer":
                 await server.answer(event["data"], player)
     finally:
         await server.remove_player(player)

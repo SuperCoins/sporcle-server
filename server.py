@@ -36,5 +36,5 @@ class Server:
     async def answer(self, answer, player):
         player_name = self.player_dict[player]
         await messages.send(
-            self.host, {"type": "answer", "data": answer, "player": player_name}
+            self.host, {"type": "submit answer", "data": answer, "player": player_name}
         )

@@ -24,12 +24,12 @@ export default class Server {
     }
 
     submitAnswer(answer) {
-        this.sendMessage({ type: "answer", data: answer })
+        this.sendMessage({ type: "submit answer", data: answer })
     }
 
     get quiz() {
         return {
-            loaded() { this.sendMessage({ type: "quiz loaded" }) },
+            info() { this.sendMessage({ type: "quiz info" }) },
             start() { this.sendMessage({ type: "quiz start" }) },
             end() { this.sendMessage({ type: "quiz end" }) },
             pause() { this.sendMessage({ type: "quiz pause" }) },

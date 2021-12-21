@@ -51,7 +51,7 @@ function onServerMessage({ data }) {
             const playerDiv = document.querySelector(`#${event.data}-div`)
             if (playerDiv) playerDiv.remove()
             break;
-        case 'answer':
+        case 'submit answer':
             const inputElement = document.querySelector(`#${event.player}`)
             inputElement.value = event.data;
             break;

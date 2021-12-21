@@ -13,7 +13,7 @@ export const connect = {
 
 export const quizControls = {
     title: document.querySelector('#control-title'),
-    loaded: document.querySelector('#quiz-loaded'),
+    info: document.querySelector('#quiz-info'),
     start: document.querySelector('#quiz-start'),
     end: document.querySelector('#quiz-end'),
     pause: document.querySelector('#quiz-pause'),
