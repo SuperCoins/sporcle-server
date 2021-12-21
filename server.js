@@ -33,11 +33,11 @@ export default class Server {
 
     get quiz() {
         return {
-            info() { this.sendMessage({ type: "quiz info" }) },
-            start() { this.sendMessage({ type: "quiz start" }) },
-            end() { this.sendMessage({ type: "quiz end" }) },
-            pause() { this.sendMessage({ type: "quiz pause" }) },
-            unpause() { this.sendMessage({ type: "quiz unpause" }) },
+            info: () => { this.sendMessage({ type: "quiz info" }) },
+            start: () => { this.sendMessage({ type: "quiz start" }) },
+            end: () => { this.sendMessage({ type: "quiz end" }) },
+            pause: () => { this.sendMessage({ type: "quiz pause" }) },
+            unpause: () => { this.sendMessage({ type: "quiz unpause" }) },
         }
     }
 

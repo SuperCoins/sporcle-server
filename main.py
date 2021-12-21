@@ -54,6 +54,8 @@ async def play_host(host, server):
                     event["data"]["answer"],
                     event["data"]["player"],
                 )
+            if "quiz" in event["type"]:
+                await server.update_quiz_status(event["type"][5:])
     finally:
         print("Host left, shutting down server")
         del SERVERS[server.id]

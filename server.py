@@ -7,6 +7,7 @@ class Server:
     # I probably don't need this dict and array both
     player_dict = {}
     name_dict = {}
+    quiz_status = 'None'
 
     def __init__(self, code, host):
         self.code = code
@@ -31,12 +32,17 @@ class Server:
         del self.name_dict[player_name]
         self.send_room_info()
 
+    async def update_quiz_status(self, status):
+        self.quiz_status = status
+        self.send_room_info()
+
     def send_room_info(self):
         event = {
             "type": "room info",
             "data": {
                 "room": {"code": self.code},
                 "players": list(self.name_dict.keys()),
+                "quiz": self.quiz_status
             },
         }
         messages.broadcast(self.connected, event)
