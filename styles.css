@@ -1,48 +1,44 @@
 body {
-  display: grid;
-  grid-template:
-    "title title join"
-    "input-title control-title control-title"
-    "inputs control-buttons control-buttons"
-    / 500px auto;
+    display: grid;
+    grid-template: "title title join" "input-title control-title control-title" "inputs control-buttons control-buttons" / 500px auto;
 }
 
 #title {
-  grid-area: title;
+    grid-area: title;
 }
 
 #join {
-  grid-area: join;
-  align-self: center;
-  justify-self: end;
+    grid-area: join;
+    align-self: center;
+    justify-self: end;
 }
 
 #control-title {
-  grid-area: control-title;
-  display: none;
+    grid-area: control-title;
+    display: none;
 }
 
 #control-buttons {
-  grid-area: control-buttons;
-  display: none;
+    grid-area: control-buttons;
+    display: none;
 }
 
 #input-title {
-  grid-area: input-title;
+    grid-area: input-title;
 }
 
 #add-player {
-  grid-area: add-player;
-  align-self: center;
+    grid-area: add-player;
+    align-self: center;
 }
 
 #inputs {
-  grid-area: inputs;
+    grid-area: inputs;
 }
 
 .element-list {
-  display: grid;
-  justify-content: start;
-  align-content: start;
-  row-gap: 5px;
+    display: grid;
+    justify-content: start;
+    align-content: start;
+    row-gap: 5px;
 }

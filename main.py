@@ -31,6 +31,7 @@ async def host(host):
     except:
         messages.error(host, "Something went wrong creating a server.")
 
+
 async def join(player, join_key):
     try:
         server = SERVERS[join_key]
@@ -41,12 +42,13 @@ async def join(player, join_key):
     await server.add_player(player, secrets.token_urlsafe(12))
     await play(player, server)
 
+
 async def play_host(host, server):
     try:
         async for message in host:
             event = messages.read(message)
     finally:
-        print('Host left, shutting down server')
+        print("Host left, shutting down server")
         del SERVERS[server.id]
 
 
