@@ -18,11 +18,6 @@ async def handler(websocket):
         await host(websocket)
 
 
-async def sendError(player, message):
-    event = {"type": "error", "data": message}
-    await messages.send(player, event)
-
-
 async def host(host):
     join_key = secrets.token_urlsafe(12)
     server = Server(join_key, host)
@@ -32,13 +27,13 @@ async def host(host):
         await messages.send(host, event)
         await play_host(host, server)
     except:
-        sendError(host, "Something went wrong creating a server.")
+        messages.error(host, "Something went wrong creating a server.")
 
 async def join(player, join_key):
     try:
         server = SERVERS[join_key]
     except KeyError:
-        await sendError(player, "Server not found.")
+        await messages.error(player, "Server not found.")
         return
 
     await server.add_player(player, secrets.token_urlsafe(12))
@@ -48,7 +43,6 @@ async def play_host(host, server):
     try:
         async for message in host:
             event = messages.read(message)
-            await messages.send(host, "thanks for the message")
     finally:
         print('Host left, shutting down server')
         del SERVERS[server.id]
@@ -60,7 +54,6 @@ async def play(player, server):
             event = messages.read(message)
             if event["type"] == "answer":
                 await server.answer(event["data"], player)
-            await messages.send(player, "thanks for the message but i don't really know what to do with this")
     finally:
         await server.remove_player(player)
 
