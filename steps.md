@@ -8,9 +8,10 @@ deactivate
 
 https://docs.microsoft.com/en-us/windows/python/web-frameworks
 
-## Connect 4
+## Connect
 
 pip install websockets
 python -m http.server
 http://localhost:8000/
 python -m websockets ws://localhost:8080/
+python main.js
