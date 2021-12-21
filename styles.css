@@ -2,9 +2,9 @@ body {
   display: grid;
   grid-template:
     "title title join"
-    "control-title input-title add-player"
-    "control-buttons inputs inputs"
-    / 1fr 1fr auto;
+    "input-title control-title control-title"
+    "inputs control-buttons control-buttons"
+    / 500px auto;
 }
 
 #title {
@@ -19,10 +19,12 @@ body {
 
 #control-title {
   grid-area: control-title;
+  display: none;
 }
 
 #control-buttons {
   grid-area: control-buttons;
+  display: none;
 }
 
 #input-title {

@@ -1,13 +1,18 @@
 import {quizEvents, quizInput, serverInit} from './events.js'
 
+const params = new URLSearchParams(window.location.search);
+const isHost = !params.has("join");
+let serverId = params.get("join") ?? undefined;
+
 let websocket;
 
 window.addEventListener("DOMContentLoaded", () => {
   websocket = new WebSocket("ws://localhost:8080/");
   init()
   addButtons()
-  addNewPlayerEvent()
-  addInput()
+  if (!isHost) addInput()
+  if (isHost) updateHostView()
+  updateTitle()
   handleMessage()
 });
 
@@ -16,10 +21,24 @@ function init() {
     console.log('[open] ', data)
     const message = {
       type: serverInit.type,
-      data: serverInit.data()
+      data: serverInit.data(serverId)
     }
     sendMessage(message)
   });
+}
+
+function updateTitle() {
+  if (isHost) {
+    const title = document.querySelector('#title')
+    title.textContent += ' (Host)'
+  }
+}
+
+function updateHostView() {
+  const buttons = document.querySelector('#control-buttons')
+  buttons.style.display = 'grid'
+  const title = document.querySelector('#control-title')
+  title.style.display = 'unset'
 }
 
 function handleMessage() {
@@ -28,7 +47,8 @@ function handleMessage() {
     console.log('[message] ', event)
     switch (event.type) {
       case 'init':
-        document.querySelector("#join").href = `?join=${event.data}`
+        serverId = event.data
+        document.querySelector("#join").href = `?join=${serverId}`
         break;
       case 'player_joined':
         addInput(event.data)
@@ -93,13 +113,6 @@ function addInputEvent(node) {
     }
     sendMessage(message)
   })
-}
-
-function addNewPlayerEvent() {
-  const element = document.querySelector('#add-player')
-  element.addEventListener('click', () => {
-    addInput()
-  });
 }
 
 function updateAnswer(answer, player) {

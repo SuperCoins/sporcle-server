@@ -37,8 +37,7 @@ export const quizInput = {
 
 export const serverInit = {
   type: 'init',
-  data() {
-    const params = new URLSearchParams(window.location.search);
-    return params.has("join") ? params.get("join") : undefined
+  data(serverId) {
+    return serverId ?? undefined
   }
 }
