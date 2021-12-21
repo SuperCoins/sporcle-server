@@ -7,12 +7,14 @@ let websocket;
 
 window.addEventListener("DOMContentLoaded", () => {
     websocket = new WebSocket(getWebSocketServer());
-    readUrlParams()
-    onOpen()
-    onRoomCode()
-    onRoomButton()
-    addButtons()
-    handleMessage()
+    websocket.addEventListener('open', event => {
+        readUrlParams()
+        onOpen()
+        onRoomCode()
+        onRoomButton()
+        addButtons()
+        handleMessage()
+    })
 });
 
 function readUrlParams() {
@@ -59,6 +61,22 @@ function removeRoomButton() {
     roomCodeLabel.hidden = false
 }
 
+function updateRoomButton() {
+    const roomCodeInput = document.querySelector('#room-code')
+    roomCodeInput.disabled = true
+    const roomCodeLabel = document.querySelector('#room-label')
+    roomCodeLabel.hidden = false
+    const roomButton = document.querySelector('#room-button')
+    const connectTag = document.createElement('a')
+    connectTag.id = 'room-button'
+    connectTag.href = `?room=${roomCode}`
+    connectTag.target = '_blank'
+    const connectButton = document.createElement('button')
+    connectButton.textContent = 'Connect to Room'
+    connectTag.appendChild(connectButton)
+    roomButton.replaceWith(connectTag)
+}
+
 function createRoom() {
     const message = {
         type: createRoomMessage.type
@@ -95,12 +113,14 @@ function handleMessage() {
         switch (event.type) {
             case 'room created':
                 isHost = true
-                removeRoomButton()
+                updateRoomCode(event.data)
+                updateRoomButton()
                 updateHostView()
                 updateTitle()
                 break;
             case 'room joined':
                 isHost = false
+                updateRoomCode(event.data)
                 removeRoomButton()
                 addInput()
                 break;
