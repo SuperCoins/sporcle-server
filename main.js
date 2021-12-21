@@ -84,8 +84,7 @@ function updateRoomButton() {
 }
 
 function addInput(name = '') {
-    const playerNumber = page.quizInputs.div.childElementCount + 1
-    const playerIdentifier = name || `player-${playerNumber}`
+    const playerIdentifier = name || `Player`
     const playerDiv = document.createElement('div')
     playerDiv.className = 'player-input'
     playerDiv.id = `${playerIdentifier}-div`
@@ -101,6 +100,15 @@ function addInput(name = '') {
     })
     playerDiv.appendChild(playerLabel)
     playerDiv.appendChild(playerInput)
+    if (isHost) {
+        const playerAnswer = document.createElement('button')
+        playerAnswer.id = `${playerIdentifier}-answer`
+        playerAnswer.textContent = 'Correct'
+        playerAnswer.addEventListener('click', () => {
+            server.answerResponse('correct', playerInput.value, name)
+        })
+        playerDiv.appendChild(playerAnswer)
+    }
     page.quizInputs.div.appendChild(playerDiv)
 }
 

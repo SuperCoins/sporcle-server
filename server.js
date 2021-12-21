@@ -27,6 +27,10 @@ export default class Server {
         this.sendMessage({ type: "submit answer", data: answer })
     }
 
+    answerResponse(response, answer, player) {
+        this.sendMessage({ type: "answer response", data: { answer, player, response } })
+    }
+
     get quiz() {
         return {
             info() { this.sendMessage({ type: "quiz info" }) },
@@ -42,10 +46,4 @@ export default class Server {
         this.websocket.send(messageString)
         console.log('(sent) ', message)
     }
-}
-
-function log(eventType, event) {
-    const type = `[${eventType}]`
-    if (event.data) console.log(type, ' ', JSON.parse(event.data))
-    else console.log(type)
 }

@@ -48,6 +48,12 @@ async def play_host(host, server):
     try:
         async for message in host:
             event = messages.read(message)
+            if event["type"] == "answer response":
+                await server.answer_response(
+                    event["data"]["response"],
+                    event["data"]["answer"],
+                    event["data"]["player"],
+                )
     finally:
         print("Host left, shutting down server")
         del SERVERS[server.id]
