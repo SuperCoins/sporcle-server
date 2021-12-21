@@ -25,3 +25,8 @@ export const quizInputs = {
     title: document.querySelector('#input-title'),
     div: document.querySelector('#inputs')
 }
+
+export const players = {
+    div: document.querySelectorAll('.player-div'),
+    input: document.querySelectorAll('.player-div input'),
+}

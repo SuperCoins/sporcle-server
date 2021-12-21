@@ -4,6 +4,7 @@ import * as page from './page-elements.js'
 let isHost = false
 let roomCode = ''
 let server;
+let players = []
 
 window.addEventListener("DOMContentLoaded", () => {
     const websocket = new WebSocket(getWebSocketServer());
@@ -39,13 +40,11 @@ function onServerMessage({ data }) {
             page.room.button.remove()
             page.room.input.disabled = true
             page.room.label.hidden = false
-            addInput()
+            addPlayer()
             break;
         case 'room info':
             updateRoomCode(event.data.room.code)
-            break;
-        case 'player_joined':
-            addInput(event.data)
+            updatePlayerList(event.data.players)
             break;
         case 'player_left':
             const playerDiv = document.querySelector(`#${event.data}-div`)
@@ -56,6 +55,17 @@ function onServerMessage({ data }) {
             inputElement.value = event.data;
             break;
     }
+}
+
+function updatePlayerList(playerList) {
+    players = players.reduce((acc, player) => {
+        if (!playerList.includes(player.name)) player.remove()
+        else acc.push(player)
+        return acc
+    }, [])
+    const playerNames = players.map(player => player.name)
+    const playersToAdd = playerList.filter(playerName => !playerNames.includes(playerName))
+    playersToAdd.forEach(playerName => addPlayer(playerName))
 }
 
 function updateRoomCode(code) {
@@ -83,33 +93,30 @@ function updateRoomButton() {
     page.room.button.replaceWith(page.connect.tag)
 }
 
-function addInput(name = '') {
-    const playerIdentifier = name || `Player`
-    const playerDiv = document.createElement('div')
-    playerDiv.className = 'player-input'
-    playerDiv.id = `${playerIdentifier}-div`
-    const playerLabel = document.createElement('label')
-    playerLabel.appendChild(document.createTextNode(`${playerIdentifier}: `))
-    const playerInput = document.createElement('input')
-    playerInput.id = playerIdentifier
-    playerInput.placeholder = "What's the answer?"
-    playerInput.disabled = isHost
-    playerInput.addEventListener('input', event => {
-        const inputValue = event.target.value
-        server.submitAnswer(inputValue)
-    })
-    playerDiv.appendChild(playerLabel)
-    playerDiv.appendChild(playerInput)
-    if (isHost) {
-        const playerAnswer = document.createElement('button')
-        playerAnswer.id = `${playerIdentifier}-answer`
-        playerAnswer.textContent = 'Correct'
-        playerAnswer.addEventListener('click', () => {
-            server.answerResponse('correct', playerInput.value, name)
-        })
-        playerDiv.appendChild(playerAnswer)
+function addPlayer(playerName = 'Player') {
+    const player = {
+        div: document.createElement('div'),
+        label: document.createElement('label'),
+        input: document.createElement('input'),
+        correct: document.createElement('button'),
+        name: playerName,
+        remove() { this.div.remove() }
     }
-    page.quizInputs.div.appendChild(playerDiv)
+    player.div.className = 'player-div'
+    player.div.id = `${playerName}-div`
+    player.label.textContent = `${playerName}: `
+    player.input.id = playerName
+    player.input.placeholder = "What's the answer?"
+    player.input.disabled = isHost
+    player.input.addEventListener('input', ({ target }) => server.submitAnswer(target.value))
+    player.correct.id = `${playerName}-answer`
+    player.correct.textContent = 'Correct'
+    player.correct.addEventListener('click', () => server.answerResponse('correct', player.input.value, playerName))
+    player.div.appendChild(player.label)
+    player.div.appendChild(player.input)
+    if (isHost) player.div.appendChild(player.correct)
+    page.quizInputs.div.appendChild(player.div)
+    players.push(player)
 }
 
 function getWebSocketServer() {

@@ -47,11 +47,6 @@ body {
     grid-area: input-title;
 }
 
-#add-player {
-    grid-area: add-player;
-    align-self: center;
-}
-
 #inputs {
     grid-area: inputs;
 }
