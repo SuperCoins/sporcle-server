@@ -15,3 +15,12 @@ python -m http.server
 http://localhost:8000/
 python -m websockets ws://localhost:8080/
 python main.js
+
+## Heroku
+
+`brew install heroku/brew/heroku`
+`heroku login`
+`heroku create sporcle-together`
+`git push heroku main`
+`heroku ps:scale web=1`
+`heroku open`
