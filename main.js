@@ -1,4 +1,5 @@
 import { createRoom as createRoomMessage, joinRoom as joinRoomMessage, quizEvents, quizInput } from './events.js'
+import * as page from './page-elements.js'
 
 let isHost = false
 let roomCode = ''
@@ -8,8 +9,8 @@ let websocket;
 window.addEventListener("DOMContentLoaded", () => {
     websocket = new WebSocket(getWebSocketServer());
     websocket.addEventListener('open', event => {
+        console.log('[open] ', event.data)
         readUrlParams()
-        onOpen()
         onRoomCode()
         onRoomButton()
         addButtons()
@@ -24,57 +25,38 @@ function readUrlParams() {
 
 function updateRoomCode(code) {
     roomCode = code
-    const roomCodeInput = document.querySelector('#room-code')
-    roomCodeInput.value = roomCode
-}
-
-function onOpen() {
-    websocket.addEventListener("open", ({ data }) => {
-        console.log('[open] ', data)
-    });
+    page.room.input.value = roomCode
 }
 
 function onRoomCode() {
-    const roomCodeInput = document.querySelector('#room-code')
-    const roomButton = document.querySelector('#room-button')
-    roomCodeInput.addEventListener('input', event => {
+    page.room.input.addEventListener('input', event => {
         const inputValue = event.target.value
-        roomButton.textContent = inputValue ? 'Join Room' : 'Create Room'
+        page.room.button.textContent = inputValue ? 'Join Room' : 'Create Room'
     })
 }
 
 function onRoomButton() {
-    const roomButton = document.querySelector('#room-button')
-    const roomCodeInput = document.querySelector('#room-code')
-    roomButton.addEventListener('click', () => {
-        if (roomCodeInput.value) joinRoom(roomCodeInput.value)
+    page.room.button.addEventListener('click', () => {
+        if (page.room.input.value) joinRoom(page.room.input.value)
         else createRoom()
     })
 }
 
 function removeRoomButton() {
-    const roomButton = document.querySelector('#room-button')
-    roomButton.remove()
-    const roomCodeInput = document.querySelector('#room-code')
-    roomCodeInput.disabled = true
-    const roomCodeLabel = document.querySelector('#room-label')
-    roomCodeLabel.hidden = false
+    page.room.button.remove()
+    page.room.input.disabled = true
+    page.room.label.hidden = false
 }
 
 function updateRoomButton() {
-    const roomCodeInput = document.querySelector('#room-code')
-    roomCodeInput.disabled = true
-    const roomCodeLabel = document.querySelector('#room-label')
-    roomCodeLabel.hidden = false
-    const roomButton = document.querySelector('#room-button')
-    const connectTag = document.createElement('a')
-    connectTag.id = 'room-button'
-    connectTag.href = `?room=${roomCode}`
-    connectTag.target = '_blank'
-    const connectButton = document.createElement('button')
-    connectButton.textContent = 'Connect to Room'
-    connectTag.appendChild(connectButton)
-    roomButton.replaceWith(connectTag)
+    page.room.input.disabled = true
+    page.room.label.hidden = false
+    page.connect.tag.id = 'room-button'
+    page.connect.tag.href = `?room=${roomCode}`
+    page.connect.tag.target = '_blank'
+    page.connect.button.textContent = 'Connect to Room'
+    page.connect.tag.appendChild(page.connect.button)
+    page.room.button.replaceWith(page.connect.tag)
 }
 
 function createRoom() {
@@ -94,16 +76,13 @@ function joinRoom(roomCode) {
 
 function updateTitle() {
     if (isHost) {
-        const title = document.querySelector('#title')
-        title.textContent += ' (Host)'
+        page.title.textContent += ' (Host)'
     }
 }
 
 function updateHostView() {
-    const buttons = document.querySelector('#control-buttons')
-    buttons.style.display = 'grid'
-    const title = document.querySelector('#control-title')
-    title.style.display = 'unset'
+    page.quizControls.buttons.style.display = 'grid'
+    page.quizControls.title.style.display = 'unset'
 }
 
 function handleMessage() {
@@ -141,13 +120,12 @@ function handleMessage() {
 }
 
 function addButtons() {
-    const controlButtonsDiv = document.querySelector("#control-buttons");
     quizEvents.forEach(quizEvent => {
         const node = document.createElement('button')
         node.id = quizEvent.type
         node.appendChild(document.createTextNode(quizEvent.pretty))
         addButtonEvents(node, quizEvent)
-        controlButtonsDiv.append(node)
+        page.quizControls.buttons.append(node)
     });
 }
 
@@ -158,8 +136,7 @@ function addButtonEvents(element, { type, data }) {
 }
 
 function addInput(name = '') {
-    const inputDiv = document.querySelector('#inputs')
-    const playerNumber = inputDiv.childElementCount + 1
+    const playerNumber = page.quizInputs.div.childElementCount + 1
     const playerIdentifier = name || `player-${playerNumber}`
     const playerDiv = document.createElement('div')
     playerDiv.className = 'player-input'
@@ -173,7 +150,7 @@ function addInput(name = '') {
     addInputEvent(playerInput)
     playerDiv.appendChild(playerLabel)
     playerDiv.appendChild(playerInput)
-    inputDiv.appendChild(playerDiv)
+    page.quizInputs.div.appendChild(playerDiv)
 }
 
 function removeInput(name = '') {
