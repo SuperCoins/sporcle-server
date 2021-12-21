@@ -92,6 +92,7 @@ function addInput(name = '') {
   const playerInput = document.createElement('input')
   playerInput.id = playerIdentifier
   playerInput.placeholder = "What's the answer?"
+  playerInput.disabled = isHost
   addInputEvent(playerInput)
   playerDiv.appendChild(playerLabel)
   playerDiv.appendChild(playerInput)
