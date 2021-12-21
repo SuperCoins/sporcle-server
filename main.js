@@ -30,6 +30,15 @@ function handleMessage() {
       case 'init':
         document.querySelector("#join").href = `?join=${event.data}`
         break;
+      case 'player_joined':
+        addInput(event.data)
+        break;
+      case 'player_left':
+        removeInput(event.data)
+        break;
+      case 'answer':
+        updateAnswer(event.data, event.player)
+        break;
     }
   });
 }
@@ -51,20 +60,27 @@ function addButtonEvents(element, {type, data}) {
   });
 }
 
-function addInput() {
+function addInput(name = '') {
   const inputDiv = document.querySelector('#inputs')
   const playerNumber = inputDiv.childElementCount + 1
+  const playerIdentifier = name ?? `player-${playerNumber}`
   const playerDiv = document.createElement('div')
   playerDiv.className = 'player-input'
+  playerDiv.id = `${playerIdentifier}-div`
   const playerLabel = document.createElement('label')
-  playerLabel.appendChild(document.createTextNode(`Player ${playerNumber}: `))
+  playerLabel.appendChild(document.createTextNode(`${playerIdentifier}: `))
   const playerInput = document.createElement('input')
-  playerInput.id = `player-${playerNumber}`;
+  playerInput.id = playerIdentifier
   playerInput.placeholder = "What's the answer?"
   addInputEvent(playerInput)
   playerDiv.appendChild(playerLabel)
   playerDiv.appendChild(playerInput)
   inputDiv.appendChild(playerDiv)
+}
+
+function removeInput(name = '') {
+  const playerDiv = document.querySelector(`#${name}-div`)
+  if (playerDiv) playerDiv.remove()
 }
 
 function addInputEvent(node) {
@@ -84,6 +100,11 @@ function addNewPlayerEvent() {
   element.addEventListener('click', () => {
     addInput()
   });
+}
+
+function updateAnswer(answer, player) {
+  const inputElement = document.querySelector(`#${player}`)
+  inputElement.value = answer;
 }
 
 function sendMessage(message) {

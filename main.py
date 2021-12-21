@@ -19,7 +19,7 @@ async def handler(websocket):
 
 
 async def sendError(player, message):
-    event = {"type": "error", "message": message}
+    event = {"type": "error", "data": message}
     await messages.send(player, event)
 
 
@@ -41,7 +41,7 @@ async def join(player, join_key):
         await sendError(player, "Server not found.")
         return
 
-    server.add_player(player)
+    await server.add_player(player, secrets.token_urlsafe(12))
     await play(player, server)
 
 async def play_host(host, server):
@@ -58,9 +58,11 @@ async def play(player, server):
     try:
         async for message in player:
             event = messages.read(message)
-            await messages.send(player, "thanks for the message")
+            if event["type"] == "answer":
+                await server.answer(event["data"], player)
+            await messages.send(player, "thanks for the message but i don't really know what to do with this")
     finally:
-        server.remove_player(player)
+        await server.remove_player(player)
 
 
 async def main():

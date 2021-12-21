@@ -12,6 +12,9 @@ async def send(websocket, message):
     print("(sent) ", message)
 
 async def broadcast(sockets, message):
-  event = json.loads(message)
-  await websockets.broadcast(sockets, message)
-  print("(broadcast) ", message)
+    await websockets.broadcast(sockets, json.dumps(message))
+    print("(broadcast) ", message)
+
+async def error(websocket, message):
+    event = {"type": "error", "data": message}
+    await send(websocket, event)

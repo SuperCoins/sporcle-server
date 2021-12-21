@@ -28,7 +28,7 @@ export const quizEvents = [
 ];
 
 export const quizInput = {
-  type: "input",
+  type: "answer",
   pretty: "What's the answer?",
   data(input) {
     return input;
