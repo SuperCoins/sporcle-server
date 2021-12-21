@@ -7,7 +7,7 @@ let serverId = params.get("join") ?? undefined;
 let websocket;
 
 window.addEventListener("DOMContentLoaded", () => {
-  websocket = new WebSocket("ws://localhost:8080/");
+  websocket = new WebSocket(getWebSocketServer());
   init()
   addButtons()
   if (!isHost) addInput()
@@ -125,4 +125,14 @@ function sendMessage(message) {
   const messageString = JSON.stringify(message)
   websocket.send(messageString)
   console.log('(sent) ', message)
+}
+
+function getWebSocketServer() {
+  if (window.location.host === "supercoins.github.io") {
+    return "wss://sporcle-together.herokuapp.com/";
+  } else if (window.location.host === "localhost:8000") {
+    return "ws://localhost:8080/";
+  } else {
+    throw new Error(`Unsupported host: ${window.location.host}`);
+  }
 }
