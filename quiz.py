@@ -1,13 +1,11 @@
 class Quiz:
-    info = {}
-    server = ""
-    status = "ready"
-    scoreboard = {}
-    answers = {}
-
     def __init__(self, server, info):
         self.server = server
         self.info = info
+        self.status = 'ready'
+        self.scoreboard = {}
+        self.answers = {}
+        self.answer_trie = {}
 
     def update_status(self, status):
         self.status = status
@@ -26,7 +24,19 @@ class Quiz:
         self.update_status("in-progress")
 
     def correct_answer(self, player_name, answer):
-        player_score = self.scoreboard.setdefault(player_name, {"points": 0, "answers": []})
+        player_score = self.scoreboard.setdefault(
+            player_name, {"points": 0, "answers": []}
+        )
         player_score["points"] += 1
         player_score["answers"].append(answer)
         self.server.send_room_info()
+
+    def new_answer(self, word):
+        current = self.answer_trie
+        for letter in word:
+            current = current.setdefault(letter, {})
+        if "_end_" not in current:
+            current["_end_"] = "_end_"
+            return True
+        else:
+            return False

@@ -3,19 +3,17 @@ from quiz import Quiz
 
 
 class Server:
-    code = ""
-    connected = set()
-    # I probably don't need this dict and array both
-    player_dict = {}
-    name_dict = {}
-    quiz = ""
-    # When a quiz is loaded a unique id can be sent so a history of quizes is searched
-    quiz_history = []
-
     def __init__(self, code, host):
         self.code = code
         self.host = host
+        self.connected = set()
         self.connected.add(host)
+        self.quiz = Quiz(self, {})
+        # When a quiz is loaded a unique id can be sent so a history of quizes is searched
+        self.quiz_history = []
+        # I probably don't need this dict and array both
+        self.player_dict = {}
+        self.name_dict = {}
 
     async def room_created(self):
         await messages.send(self.host, {"type": "room created", "data": self.code})
@@ -54,6 +52,7 @@ class Server:
     def add_quiz(self, quiz_info):
         self.quiz = Quiz(self, quiz_info)
         self.quiz_history.append(self.quiz)
+        print(self.quiz.answer_trie)
         self.send_room_info()
 
     def send_room_info(self):
@@ -73,6 +72,8 @@ class Server:
         messages.broadcast(self.connected, event)
 
     async def answer(self, answer, player):
+        if not self.quiz.new_answer(answer):
+            return
         player_name = self.player_dict[player]
         await messages.send(
             self.host, {"type": "submit answer", "data": answer, "player": player_name}
