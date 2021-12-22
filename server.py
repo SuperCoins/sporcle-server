@@ -38,6 +38,16 @@ class Server:
         del self.name_dict[player_name]
         self.send_room_info()
 
+    async def update_player(self, player, name):
+        if name in self.player_dict.keys():
+            await messages.error(player, "Name is already in use.")
+            return
+        current_name = self.player_dict[player]
+        del self.name_dict[current_name]
+        self.name_dict[name] = player
+        self.player_dict[player] = name
+        self.send_room_info()
+
     def add_quiz(self, quiz_info):
         self.quiz = Quiz(self, quiz_info)
         self.quiz_history.append(self.quiz)

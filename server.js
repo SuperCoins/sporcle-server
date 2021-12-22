@@ -23,6 +23,10 @@ export default class Server {
         this.sendMessage({ type: "join room", data: roomCode, player: name })
     }
 
+    updateName(name) {
+        this.sendMessage({ type: "update name", data: name })
+    }
+
     submitAnswer(answer) {
         this.sendMessage({ type: "submit answer", data: answer })
     }

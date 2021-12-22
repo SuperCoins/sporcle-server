@@ -16,6 +16,7 @@ function onServerOpen() {
     if (params.has("room")) server.joinRoom(params.get('room'))
     page.room.input.addEventListener('input', onRoomCode)
     page.room.button.addEventListener('click', onRoomButton)
+    page.name.input.addEventListener('input', onNameUpdate)
     page.quizControls.info.addEventListener('click', server.quiz.info)
     page.quizControls.start.addEventListener('click', server.quiz.start)
     page.quizControls.end.addEventListener('click', server.quiz.end)
@@ -47,10 +48,6 @@ function onServerMessage({ data }) {
         case 'room info':
             updateRoomCode(event.data.room.code)
             updatePlayerList(event.data.players)
-            break;
-        case 'player_left':
-            const playerDiv = document.querySelector(`#${event.data}-div`)
-            if (playerDiv) playerDiv.remove()
             break;
         case 'submit answer':
             const inputElement = document.querySelector(`#${event.player}`)
@@ -93,6 +90,11 @@ function updateRoomButton() {
     page.connect.button.textContent = 'Connect to Room'
     page.connect.tag.appendChild(page.connect.button)
     page.room.button.replaceWith(page.connect.tag)
+}
+
+function onNameUpdate(event) {
+    if (!roomCode) return
+    server.updateName(event.target.value)
 }
 
 function addPlayer(playerName = 'Player') {

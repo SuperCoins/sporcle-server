@@ -16,7 +16,7 @@ async def handler(websocket):
     message = await websocket.recv()
     event = messages.read(message)
     if event["type"] == "join room":
-        await join(websocket, event["data"], event["player"])
+        await join(websocket, event["data"], event.get('player', None))
     elif event["type"] == "create room":
         await host(websocket)
     else:
@@ -82,6 +82,8 @@ async def play(player, server):
             event = messages.read(message)
             if event["type"] == "submit answer":
                 await server.answer(event["data"], player)
+            elif event["type"] == "update name":
+                await server.update_player(player, event["data"])
     finally:
         await server.remove_player(player)
 
