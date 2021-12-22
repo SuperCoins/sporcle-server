@@ -53,7 +53,6 @@ async def play_host(host, server):
         async for message in host:
             event = messages.read(message)
             etype = event["type"]
-            print("event", event)
             if etype == "answer response":
                 await server.answer_response(
                     event["data"]["response"],
@@ -72,7 +71,7 @@ async def play_host(host, server):
             elif etype == "quiz unpause":
                 server.quiz.unpause()
     finally:
-        print("Host left, shutting down server")
+        server.close('"Host left, shutting down server"')
         del SERVERS[server.code]
 
 

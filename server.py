@@ -80,3 +80,8 @@ class Server:
                 "data": {"answer": answer, "response": response},
             },
         )
+
+    def close(self, message):
+        messages.broadcast(
+            self.player_dict.keys(), {"type": "room closed", "data": message}
+        )
