@@ -19,8 +19,8 @@ export default class Server {
         this.sendMessage({ type: "create room" })
     }
 
-    joinRoom(roomCode) {
-        this.sendMessage({ type: "join room", data: roomCode })
+    joinRoom(roomCode, name) {
+        this.sendMessage({ type: "join room", data: roomCode, player: name })
     }
 
     submitAnswer(answer) {

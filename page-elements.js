@@ -6,6 +6,11 @@ export const room = {
     label: document.querySelector('#room-label')
 }
 
+export const name = {
+    input: document.querySelector('#name-input'),
+    label: document.querySelector('#name-label')
+}
+
 export const connect = {
     tag: document.createElement('a'),
     button: document.createElement('button'),

@@ -33,6 +33,7 @@ function onServerMessage({ data }) {
             page.quizControls.buttons.style.display = 'grid'
             page.quizControls.title.style.display = 'unset'
             page.title.textContent += ' (Host)'
+            page.name.label.hidden = false
             break;
         case 'room joined':
             isHost = false
@@ -40,6 +41,7 @@ function onServerMessage({ data }) {
             page.room.button.remove()
             page.room.input.disabled = true
             page.room.label.hidden = false
+            page.name.label.hidden = false
             addPlayer()
             break;
         case 'room info':
@@ -78,7 +80,7 @@ function onRoomCode(event) {
 }
 
 function onRoomButton() {
-    if (page.room.input.value) server.joinRoom(page.room.input.value)
+    if (page.room.input.value) server.joinRoom(page.room.input.value, page.name.input.value)
     else server.createRoom()
 }
 

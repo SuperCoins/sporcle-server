@@ -1,6 +1,6 @@
 body {
     display: grid;
-    grid-template: "title title room-container" "input-title control-title control-title" "inputs control-buttons control-buttons" / 500px auto;
+    grid-template: "title room-container" "input-title control-title" "inputs control-buttons" / 500px auto;
 }
 
 #title {
@@ -12,7 +12,7 @@ body {
     display: grid;
     align-items: center;
     justify-items: end;
-    grid-template: "room-label room-code room-button" / auto auto auto;
+    grid-template: "room-label room-code room-button" "name-label name-input empty"/ auto auto auto;
 }
 
 #room-label {
@@ -25,6 +25,14 @@ body {
 
 #room-button {
     grid-area: room-button;
+}
+
+#name-label {
+    grid-area: name-label;
+}
+
+#name-input {
+    grid-area: name-input;
 }
 
 #join {

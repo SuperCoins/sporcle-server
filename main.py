@@ -16,7 +16,7 @@ async def handler(websocket):
     message = await websocket.recv()
     event = messages.read(message)
     if event["type"] == "join room":
-        await join(websocket, event["data"])
+        await join(websocket, event["data"], event["player"])
     elif event["type"] == "create room":
         await host(websocket)
     else:
@@ -35,16 +35,16 @@ async def host(host):
         await messages.error(host, "Something went wrong.")
 
 
-async def join(player, room_code):
+async def join(player, room_code, name):
     try:
         server = SERVERS[room_code]
     except KeyError:
         await messages.error(player, "Server not found.")
         return
 
-    await server.add_player(
-        player, "".join(random.choice(string.ascii_uppercase) for i in range(4))
-    )
+    if not name:
+        name = "".join(random.choice(string.ascii_uppercase) for i in range(4))
+    await server.add_player(player, name)
     await play(player, server)
 
 
