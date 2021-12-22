@@ -28,7 +28,9 @@ class Server:
         self.connected.add(player)
         self.player_dict[player] = player_name
         self.name_dict[player_name] = player
-        await messages.send(player, {"type": "room joined", "data": self.code, "player": player_name})
+        await messages.send(
+            player, {"type": "room joined", "data": self.code, "player": player_name}
+        )
         self.send_room_info()
 
     async def remove_player(self, player):
@@ -63,7 +65,11 @@ class Server:
             },
         }
         if self.quiz:
-            event["data"]["quiz"] = {"info": self.quiz.info, "status": self.quiz.status}
+            event["data"]["quiz"] = {
+                "info": self.quiz.info,
+                "status": self.quiz.status,
+                "scoreboard": self.quiz.scoreboard,
+            }
         messages.broadcast(self.connected, event)
 
     async def answer(self, answer, player):
@@ -81,6 +87,8 @@ class Server:
                 "data": {"answer": answer, "response": response},
             },
         )
+        if response == "correct" and self.quiz:
+            self.quiz.correct_answer(player_name, answer)
 
     def close(self, message):
         messages.broadcast(
