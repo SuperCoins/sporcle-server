@@ -33,7 +33,18 @@ export default class Server {
 
     get quiz() {
         return {
-            info: () => { this.sendMessage({ type: "quiz info" }) },
+            info: () => {
+                this.sendMessage({
+                    type: "quiz info",
+                    data: {
+                        "name": "Anything but Zimbabwe",
+                        "gameID": 630868,
+                        "gameTypeID": 0,
+                        "gameTimeSeconds": 360,
+                        "autoGo": false,
+                    }
+                })
+            },
             start: () => { this.sendMessage({ type: "quiz start" }) },
             end: () => { this.sendMessage({ type: "quiz end" }) },
             pause: () => { this.sendMessage({ type: "quiz pause" }) },

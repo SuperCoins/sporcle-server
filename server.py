@@ -1,4 +1,5 @@
 import messages
+from quiz import Quiz
 
 
 class Server:
@@ -7,7 +8,9 @@ class Server:
     # I probably don't need this dict and array both
     player_dict = {}
     name_dict = {}
-    quiz_status = 'None'
+    quiz = ""
+    # When a quiz is loaded a unique id can be sent so a history of quizes is searched
+    quiz_history = []
 
     def __init__(self, code, host):
         self.code = code
@@ -32,8 +35,9 @@ class Server:
         del self.name_dict[player_name]
         self.send_room_info()
 
-    async def update_quiz_status(self, status):
-        self.quiz_status = status
+    def add_quiz(self, quiz_info):
+        self.quiz = Quiz(self, quiz_info)
+        self.quiz_history.append(self.quiz)
         self.send_room_info()
 
     def send_room_info(self):
@@ -42,9 +46,10 @@ class Server:
             "data": {
                 "room": {"code": self.code},
                 "players": list(self.name_dict.keys()),
-                "quiz": self.quiz_status
             },
         }
+        if self.quiz:
+            event["data"]["quiz"] = {"info": self.quiz.info, "status": self.quiz.status}
         messages.broadcast(self.connected, event)
 
     async def answer(self, answer, player):

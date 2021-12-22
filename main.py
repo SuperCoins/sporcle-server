@@ -22,20 +22,20 @@ async def handler(websocket):
 
 
 async def host(host):
-    join_key = secrets.token_urlsafe(12)
-    server = Server(join_key, host)
-    SERVERS[join_key] = server
+    room_code = secrets.token_urlsafe(12)
+    server = Server(room_code, host)
+    SERVERS[room_code] = server
     try:
         await server.room_created()
         await play_host(host, server)
     except Exception as e:
         print(e)
-        await messages.error(host, "Something went wrong creating a server.")
+        await messages.error(host, "Something went wrong.")
 
 
-async def join(player, join_key):
+async def join(player, room_code):
     try:
-        server = SERVERS[join_key]
+        server = SERVERS[room_code]
     except KeyError:
         await messages.error(player, "Server not found.")
         return
@@ -48,17 +48,28 @@ async def play_host(host, server):
     try:
         async for message in host:
             event = messages.read(message)
-            if event["type"] == "answer response":
+            etype = event["type"]
+            print('event', event)
+            if etype == "answer response":
                 await server.answer_response(
                     event["data"]["response"],
                     event["data"]["answer"],
                     event["data"]["player"],
                 )
-            if "quiz" in event["type"]:
-                await server.update_quiz_status(event["type"][5:])
+            elif etype == "quiz info":
+                server.add_quiz(event["data"])
+            elif etype == "quiz start":
+                print('quiz', server.quiz)
+                server.quiz.start()
+            elif etype == "quiz end":
+                server.quiz.end()
+            elif etype == "quiz pause":
+                server.quiz.pause()
+            elif etype == "quiz unpause":
+                server.quiz.unpause()
     finally:
         print("Host left, shutting down server")
-        del SERVERS[server.id]
+        del SERVERS[server.code]
 
 
 async def play(player, server):
