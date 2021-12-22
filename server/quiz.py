@@ -1,15 +1,15 @@
 class Quiz:
-    def __init__(self, server, info):
-        self.server = server
+    def __init__(self, room, info):
+        self.room = room
         self.info = info
-        self.status = 'ready'
+        self.status = "ready"
         self.scoreboard = {}
         self.answers = {}
         self.answer_trie = {}
 
     def update_status(self, status):
         self.status = status
-        self.server.send_room_info()
+        self.room.send_info()
 
     def start(self):
         self.update_status("in-progress")
@@ -29,7 +29,7 @@ class Quiz:
         )
         player_score["points"] += 1
         player_score["answers"].append(answer)
-        self.server.send_room_info()
+        self.room.send_info()
 
     def new_answer(self, word):
         current = self.answer_trie

@@ -1,97 +1,103 @@
+import asyncio
+import websockets
+import os
+import signal
+import random
+import string
+import sys
+
+sys.path.insert(0, 'server')
 import messages
-from quiz import Quiz
+from room import Room
+
+ROOMS = {}
 
 
-class Server:
-    def __init__(self, code, host):
-        self.code = code
-        self.host = host
-        self.connected = set()
-        self.connected.add(host)
-        self.quiz = Quiz(self, {})
-        # When a quiz is loaded a unique id can be sent so a history of quizes is searched
-        self.quiz_history = []
-        # I probably don't need this dict and array both
-        self.player_dict = {}
-        self.name_dict = {}
+async def handler(websocket):
+    message = await websocket.recv()
+    event = messages.read(message)
+    if event["type"] == "join room":
+        await join(websocket, event["data"], event.get("player", None))
+    elif event["type"] == "create room":
+        await host(websocket)
+    else:
+        await messages.error(websocket, "Please create or join a room first")
 
-    async def room_created(self):
-        await messages.send(self.host, {"type": "room created", "data": self.code})
-        self.send_room_info()
 
-    async def add_player(self, player, player_name):
-        if player_name in self.player_dict.keys():
-            await messages.error(player, "Name is already in use.")
-            return
-        self.connected.add(player)
-        self.player_dict[player] = player_name
-        self.name_dict[player_name] = player
-        await messages.send(
-            player, {"type": "room joined", "data": self.code, "player": player_name}
-        )
-        self.send_room_info()
+async def host(host):
+    # TODO Make sure the room doesn't already exist
+    room_code = "".join(random.choice(string.ascii_uppercase) for i in range(4))
+    room = Room(room_code, host)
+    ROOMS[room_code] = room
+    try:
+        await room.created()
+        await play_host(host, room)
+    except Exception as e:
+        await messages.error(host, "Something went wrong: " + e)
 
-    async def remove_player(self, player):
-        player_name = self.player_dict[player]
-        self.connected.remove(player)
-        del self.player_dict[player]
-        del self.name_dict[player_name]
-        self.send_room_info()
 
-    async def update_player(self, player, name):
-        if name in self.player_dict.keys():
-            await messages.error(player, "Name is already in use.")
-            return
-        current_name = self.player_dict[player]
-        del self.name_dict[current_name]
-        self.name_dict[name] = player
-        self.player_dict[player] = name
-        await messages.send(player, {"type": "name updated", "data": name})
-        self.send_room_info()
+async def join(player, room_code, name):
+    try:
+        room = ROOMS[room_code]
+    except KeyError:
+        await messages.error(player, "Room not found.")
+        return
 
-    def add_quiz(self, quiz_info):
-        self.quiz = Quiz(self, quiz_info)
-        self.quiz_history.append(self.quiz)
-        print(self.quiz.answer_trie)
-        self.send_room_info()
+    if not name:
+        name = "".join(random.choice(string.ascii_uppercase) for i in range(4))
+    await room.add_player(player, name)
+    await play(player, room)
 
-    def send_room_info(self):
-        event = {
-            "type": "room info",
-            "data": {
-                "room": {"code": self.code},
-                "players": list(self.name_dict.keys()),
-            },
-        }
-        if self.quiz:
-            event["data"]["quiz"] = {
-                "info": self.quiz.info,
-                "status": self.quiz.status,
-                "scoreboard": self.quiz.scoreboard,
-            }
-        messages.broadcast(self.connected, event)
 
-    async def answer(self, answer, player):
-        if not self.quiz.new_answer(answer):
-            return
-        player_name = self.player_dict[player]
-        await messages.send(
-            self.host, {"type": "submit answer", "data": answer, "player": player_name}
-        )
+async def play_host(host, room):
+    try:
+        async for message in host:
+            event = messages.read(message)
+            etype = event["type"]
+            if etype == "answer response":
+                await room.answer_response(
+                    event["data"]["response"],
+                    event["data"]["answer"],
+                    event["data"]["player"],
+                )
+            elif etype == "quiz info":
+                room.add_quiz(event["data"])
+            elif etype == "quiz start":
+                print("quiz", room.quiz)
+                room.quiz.start()
+            elif etype == "quiz end":
+                room.quiz.end()
+            elif etype == "quiz pause":
+                room.quiz.pause()
+            elif etype == "quiz unpause":
+                room.quiz.unpause()
+    finally:
+        room.close("Host left, closing room!")
+        del ROOMS[room.code]
 
-    async def answer_response(self, response, answer, player_name):
-        player = self.name_dict[player_name]
-        await messages.send(
-            player,
-            {
-                "type": "answer response",
-                "data": {"answer": answer, "response": response},
-            },
-        )
-        if response == "correct" and self.quiz:
-            self.quiz.correct_answer(player_name, answer)
 
-    def close(self, message):
-        messages.broadcast(
-            self.player_dict.keys(), {"type": "room closing", "data": message}
-        )
+async def play(player, room):
+    try:
+        async for message in player:
+            event = messages.read(message)
+            if event["type"] == "submit answer":
+                await room.answer(event["data"], player)
+            elif event["type"] == "update name":
+                await room.update_player(player, event["data"])
+    finally:
+        await room.remove_player(player)
+
+
+async def main():
+    # Set the stop condition when receiving SIGTERM.
+    loop = asyncio.get_running_loop()
+    stop = loop.create_future()
+    loop.add_signal_handler(signal.SIGTERM, stop.set_result, None)
+
+    port = int(os.environ.get("PORT", "8080"))
+    async with websockets.serve(handler, "", port):
+        await stop
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

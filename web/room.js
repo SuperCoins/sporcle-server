@@ -1,4 +1,4 @@
-export default class Server {
+export default class Room {
     websocket;
 
     constructor(websocket, onOpen, onMessage) {
@@ -15,30 +15,30 @@ export default class Server {
         else console.log(type)
     }
 
-    createRoom() {
-        this.sendMessage({ type: "create room" })
+    create() {
+        this.message({ type: "create room" })
     }
 
-    joinRoom(roomCode, name) {
-        this.sendMessage({ type: "join room", data: roomCode, player: name })
+    join(roomCode, name) {
+        this.message({ type: "join room", data: roomCode, player: name })
     }
 
     updateName(name) {
-        this.sendMessage({ type: "update name", data: name })
+        this.message({ type: "update name", data: name })
     }
 
-    submitAnswer(answer) {
-        this.sendMessage({ type: "submit answer", data: answer })
+    answer(answer) {
+        this.message({ type: "submit answer", data: answer })
     }
 
     answerResponse(response, answer, player) {
-        this.sendMessage({ type: "answer response", data: { answer, player, response } })
+        this.message({ type: "answer response", data: { answer, player, response } })
     }
 
     get quiz() {
         return {
             info: () => {
-                this.sendMessage({
+                this.message({
                     type: "quiz info",
                     data: {
                         "name": "Anything but Zimbabwe",
@@ -49,14 +49,14 @@ export default class Server {
                     }
                 })
             },
-            start: () => { this.sendMessage({ type: "quiz start" }) },
-            end: () => { this.sendMessage({ type: "quiz end" }) },
-            pause: () => { this.sendMessage({ type: "quiz pause" }) },
-            unpause: () => { this.sendMessage({ type: "quiz unpause" }) },
+            start: () => { this.message({ type: "quiz start" }) },
+            end: () => { this.message({ type: "quiz end" }) },
+            pause: () => { this.message({ type: "quiz pause" }) },
+            unpause: () => { this.message({ type: "quiz unpause" }) },
         }
     }
 
-    sendMessage(message) {
+    message(message) {
         const messageString = JSON.stringify(message)
         this.websocket.send(messageString)
         console.log('(sent) ', message)

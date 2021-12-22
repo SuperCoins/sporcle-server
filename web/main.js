@@ -1,27 +1,27 @@
-import Server from './server.js'
+import Room from './room.js'
 import * as page from './page-elements.js'
 
 let isHost = false
 let roomCode = ''
-let server;
+let room;
 let players = []
 
 window.addEventListener("DOMContentLoaded", () => {
     const websocket = new WebSocket(getWebSocketServer());
-    server = new Server(websocket, onServerOpen, onServerMessage)
+    room = new Room(websocket, onServerOpen, onServerMessage)
 });
 
 function onServerOpen() {
     const params = new URLSearchParams(window.location.search);
-    if (params.has("room")) server.joinRoom(params.get('room'))
+    if (params.has("room")) room.join(params.get('room'))
     page.room.input.addEventListener('input', onRoomCode)
     page.room.button.addEventListener('click', onRoomButton)
     page.name.input.addEventListener('input', onNameUpdate)
-    page.quizControls.info.addEventListener('click', server.quiz.info)
-    page.quizControls.start.addEventListener('click', server.quiz.start)
-    page.quizControls.end.addEventListener('click', server.quiz.end)
-    page.quizControls.pause.addEventListener('click', server.quiz.pause)
-    page.quizControls.unpause.addEventListener('click', server.quiz.unpause)
+    page.quizControls.info.addEventListener('click', room.quiz.info)
+    page.quizControls.start.addEventListener('click', room.quiz.start)
+    page.quizControls.end.addEventListener('click', room.quiz.end)
+    page.quizControls.pause.addEventListener('click', room.quiz.pause)
+    page.quizControls.unpause.addEventListener('click', room.quiz.unpause)
 }
 
 function onServerMessage({ data }) {
@@ -87,8 +87,8 @@ function onRoomCode(event) {
 }
 
 function onRoomButton() {
-    if (page.room.input.value) server.joinRoom(page.room.input.value, page.name.input.value)
-    else server.createRoom()
+    if (page.room.input.value) room.join(page.room.input.value, page.name.input.value)
+    else room.create()
 }
 
 function updateRoomButton() {
@@ -104,7 +104,7 @@ function updateRoomButton() {
 
 function onNameUpdate(event) {
     if (!roomCode) return
-    server.updateName(event.target.value)
+    room.updateName(event.target.value)
 }
 
 function addPlayer(playerName, readOnly = true) {
@@ -122,10 +122,10 @@ function addPlayer(playerName, readOnly = true) {
     player.input.id = playerName
     player.input.placeholder = "What's the answer?"
     player.input.disabled = readOnly
-    player.input.addEventListener('input', ({ target }) => server.submitAnswer(target.value))
+    player.input.addEventListener('input', ({ target }) => room.answer(target.value))
     player.correct.id = `${playerName}-answer`
     player.correct.textContent = 'Correct'
-    player.correct.addEventListener('click', () => server.answerResponse('correct', player.input.value, playerName))
+    player.correct.addEventListener('click', () => room.answerResponse('correct', player.input.value, playerName))
     player.div.appendChild(player.label)
     player.div.appendChild(player.input)
     if (isHost) player.div.appendChild(player.correct)
