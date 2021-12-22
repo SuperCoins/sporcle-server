@@ -22,6 +22,9 @@ class Server:
         self.send_room_info()
 
     async def add_player(self, player, player_name):
+        if player_name in self.player_dict.keys():
+            await messages.error(player, "Name is already in use.")
+            return
         self.connected.add(player)
         self.player_dict[player] = player_name
         self.name_dict[player_name] = player

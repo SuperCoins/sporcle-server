@@ -42,7 +42,9 @@ async def join(player, room_code):
         await messages.error(player, "Server not found.")
         return
 
-    await server.add_player(player, secrets.token_urlsafe(12))
+    await server.add_player(
+        player, "".join(random.choice(string.ascii_uppercase) for i in range(4))
+    )
     await play(player, server)
 
 
