@@ -43,11 +43,16 @@ function onServerMessage({ data }) {
             page.room.input.disabled = true
             page.room.label.hidden = false
             page.name.label.hidden = false
-            addPlayer()
+            page.name.input.value = event.player
+            addPlayer(event.player, false)
+            break;
+        case 'name updated':
+            page.name.input.value = event.data
+            updatePlayerBox(event.data)
             break;
         case 'room info':
             updateRoomCode(event.data.room.code)
-            updatePlayerList(event.data.players)
+            if (isHost) updatePlayerList(event.data.players)
             break;
         case 'submit answer':
             const inputElement = document.querySelector(`#${event.player}`)
@@ -65,6 +70,11 @@ function updatePlayerList(playerList) {
     const playerNames = players.map(player => player.name)
     const playersToAdd = playerList.filter(playerName => !playerNames.includes(playerName))
     playersToAdd.forEach(playerName => addPlayer(playerName))
+}
+
+function updatePlayerBox(playerName) {
+    players.forEach(player => player.remove())
+    addPlayer(playerName, false)
 }
 
 function updateRoomCode(code) {
@@ -97,7 +107,7 @@ function onNameUpdate(event) {
     server.updateName(event.target.value)
 }
 
-function addPlayer(playerName = 'Player') {
+function addPlayer(playerName, readOnly = true) {
     const player = {
         div: document.createElement('div'),
         label: document.createElement('label'),
@@ -111,7 +121,7 @@ function addPlayer(playerName = 'Player') {
     player.label.textContent = `${playerName}: `
     player.input.id = playerName
     player.input.placeholder = "What's the answer?"
-    player.input.disabled = isHost
+    player.input.disabled = readOnly
     player.input.addEventListener('input', ({ target }) => server.submitAnswer(target.value))
     player.correct.id = `${playerName}-answer`
     player.correct.textContent = 'Correct'

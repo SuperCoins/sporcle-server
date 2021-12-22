@@ -28,7 +28,7 @@ class Server:
         self.connected.add(player)
         self.player_dict[player] = player_name
         self.name_dict[player_name] = player
-        await messages.send(player, {"type": "room joined", "data": self.code})
+        await messages.send(player, {"type": "room joined", "data": self.code, "player": player_name})
         self.send_room_info()
 
     async def remove_player(self, player):
@@ -46,6 +46,7 @@ class Server:
         del self.name_dict[current_name]
         self.name_dict[name] = player
         self.player_dict[player] = name
+        await messages.send(player, {"type": "name updated", "data": name})
         self.send_room_info()
 
     def add_quiz(self, quiz_info):
