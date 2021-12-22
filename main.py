@@ -4,6 +4,8 @@ import secrets
 import messages
 import os
 import signal
+import random
+import string
 
 from server import Server
 
@@ -22,7 +24,7 @@ async def handler(websocket):
 
 
 async def host(host):
-    room_code = secrets.token_urlsafe(12)
+    room_code = "".join(random.choice(string.ascii_uppercase) for i in range(4))
     server = Server(room_code, host)
     SERVERS[room_code] = server
     try:
@@ -49,7 +51,7 @@ async def play_host(host, server):
         async for message in host:
             event = messages.read(message)
             etype = event["type"]
-            print('event', event)
+            print("event", event)
             if etype == "answer response":
                 await server.answer_response(
                     event["data"]["response"],
@@ -59,7 +61,7 @@ async def play_host(host, server):
             elif etype == "quiz info":
                 server.add_quiz(event["data"])
             elif etype == "quiz start":
-                print('quiz', server.quiz)
+                print("quiz", server.quiz)
                 server.quiz.start()
             elif etype == "quiz end":
                 server.quiz.end()
