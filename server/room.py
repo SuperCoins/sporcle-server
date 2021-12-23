@@ -12,8 +12,6 @@ class Room:
         self.quiz = Quiz(self, {})
         # When a quiz is loaded a unique id can be sent so a history of quizes is searched
         self.quiz_history = []
-        # I probably don't need this dict and array both
-        self.player_dict = {}
         self.name_dict = {}
 
     async def created(self):
@@ -35,7 +33,7 @@ class Room:
     async def remove_player(self, player):
         player.room = None
         self.connected.remove(player)
-        del self.name_dict[player]
+        del self.name_dict[player.name]
         self.send_info()
 
     def add_quiz(self, quiz_info):
@@ -81,5 +79,7 @@ class Room:
             [player.websocket for player in self.connected], json.dumps(message)
         )
 
-    def close(self, message):
+    async def close(self, message):
         self.broadcast({"type": "room closing", "data": message})
+        for player in self.connected:
+            await player.close()

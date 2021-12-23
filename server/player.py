@@ -36,3 +36,7 @@ class Player:
     async def error(self, message):
         event = {"type": "error", "data": message}
         await self.send(event)
+
+    async def close(self):
+        if self.websocket.open:
+            await self.websocket.close()

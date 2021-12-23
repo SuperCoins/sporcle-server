@@ -23,27 +23,32 @@ class LoggerAdapter(logging.LoggerAdapter):
             websocket = kwargs["extra"]["websocket"]
             player = PLAYERS[websocket]
         except KeyError:
-            return msg, kwargs
-        return f"{player.name:>10} {msg}", kwargs
+            return f" {msg}", kwargs
+        return f"{player.name} {msg}", kwargs
 
 
 logging.basicConfig(
-    format="%(message)s",
+    format="%(name)s:%(message)s",
     level=logging.DEBUG,
 )
 logger = LoggerAdapter(logging.getLogger("websockets"), {})
 
 
 async def handler(websocket):
-    message = await websocket.recv()
-    event = read(message)
-    player = PLAYERS.setdefault(websocket, Player(websocket, event.get("player", None)))
-    if event["type"] == "join room":
-        await join(event["data"], player)
-    elif event["type"] == "create room":
-        await host(player)
-    else:
-        await player.error("Please create or join a room first")
+    try:
+        async for message in websocket:
+            event = read(message)
+            player = PLAYERS.setdefault(
+                websocket, Player(websocket, event.get("player", None))
+            )
+            if event["type"] == "join room":
+                await join(event["data"], player)
+            elif event["type"] == "create room":
+                await host(player)
+            else:
+                await player.error("Please create or join a room first")
+    finally:
+        return
 
 
 async def host(player):
@@ -56,7 +61,7 @@ async def host(player):
         await room.created()
         await play_host(player, room)
     except Exception as e:
-        await player.error("Something went wrong: " + e)
+        await player.error("Something went wrong creating a room: ", e)
 
 
 async def join(room_code, player):
@@ -92,7 +97,8 @@ async def play_host(player, room):
             elif etype == "quiz unpause":
                 room.quiz.unpause()
     finally:
-        room.close("Host left, closing room!")
+        logging.info(f"{player.name} has left room {room.code}")
+        await room.close("Host left, closing room!")
         del ROOMS[room.code]
 
 
@@ -105,6 +111,7 @@ async def play(player, room):
             elif event["type"] == "update name":
                 await player.update_name(event["data"])
     finally:
+        logging.info(f"{player.name} has left room {room.code}")
         await room.remove_player(player)
 
 
