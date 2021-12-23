@@ -2,31 +2,80 @@
 <html lang="en">
 
 <head>
-    <title>Sporcle Server</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Sporcle.Party</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
     <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
-    <h1 id="title">Sporcle Together</h1>
-    <div id="room-container">
-        <label id="room-label" hidden>Room Code: </label>
-        <input id="room-code" placeholder="Enter a room code" />
-        <button id="room-button">Create Room</button>
-        <label id="name-label" hidden>Name: </label>
-        <input id="name-input" placeholder="Enter a name">
-    </div>
-    <h2 id="control-title">Quiz Controls</h2>
-    <div id="control-buttons" class="element-list">
-        <button id="quiz-info">Quiz Info</button>
-        <button id="quiz-start">Quiz Start</button>
-        <button id="quiz-end">Quiz End</button>
-        <button id="quiz-pause">Quiz Pause</button>
-        <button id="quiz-unpause">Quiz Unpause</button>
-    </div>
-    <h2 id="input-title">Quiz Inputs</h2>
-    <div id="inputs" class="element-list"></div>
-    <script src="main.js" type="module"></script>
+    <section class="section">
+        <div class="container">
+            <div class="columns is-vcentered">
+                <h1 class="title column is-narrow" id="title">Sporcle.Party</h1>
+                <div class="column"></div>
+                <div id="room-container" class="column is-narrow">
+                    <div class="field is-grouped is-grouped-right is-align-items-flex-end">
+                        <label class="label is-small mr-1" id="room-label">Room Code:</label>
+                        <div class="control">
+                            <input class="input is-small" type="text" id="room-code" placeholder="Enter a room code" />
+                        </div>
+                    </div>
+                    <div class="field is-grouped is-grouped-right is-align-items-flex-end">
+                        <label class="label is-small mr-1" id="name-label">Name:</label>
+                        <div class="control">
+                            <input class="input is-small" type="text" id="name-input" placeholder="Enter a name">
+                        </div>
+                    </div>
+                    <div class="field is-grouped is-grouped-right is-align-items-center">
+                        <div class="control" id="room-button-control">
+                            <button class="button is-primary is-small" id="room-button">Create Room</button>
+                        </div>
+                        <div class="control" id="connect-room-control" hidden>
+                            <a id="connect-room-tag" class="button is-link is-small" target="_blank">Connect to Room</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="columns my-6">
+                <div class="column">
+                    <nav class="panel is-success">
+                        <p id="inputs-title" class="panel-heading has-text-centered">Friends</p>
+                        <div class="panel-block">
+                            <div id="inputs-container" class="container"></div>
+                        </div>
+                    </nav>
+                </div>
+                <div class="column">
+                    <nav id="quiz-control-panel" class="panel is-warning" hidden>
+                        <p id="quiz-title" class="panel-heading has-text-centered">Quiz Controls</p>
+                        <div class="panel-block">
+                            <div class="container">
+                                <div class="columns is-multiline is-1 is-variable">
+                                    <div class="column is-full pt-3">
+                                        <button id="quiz-info" class="button is-info is-outlined is-fullwidth">Quiz Info</button>
+                                    </div>
+                                    <div class="column is-half pt-0">
+                                        <button id="quiz-start" class="button is-success is-fullwidth">Quiz Start</button>
+                                    </div>
+                                    <div class="column is-half pt-0">
+                                        <button id="quiz-pause" class="button is-success is-light is-fullwidth">Quiz Pause</button>
+                                    </div>
+                                    <div class="column is-half pt-0">
+                                        <button id="quiz-end" class="button is-danger is-fullwidth">Quiz End</button>
+                                    </div>
+                                    <div class="column is-half pt-0 pb-3">
+                                        <button id="quiz-unpause" class="button is-danger is-light is-fullwidth">Quiz Unpause</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+            <script src="main.js" type="module"></script>
+        </div>
+    </section>
 </body>
 
 </html>
