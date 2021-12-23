@@ -46,7 +46,7 @@ class Room:
             "type": "room info",
             "data": {
                 "room": {"code": self.code},
-                "players": list([player.name for player in self.connected]),
+                "players": list([player_name for player_name in self.name_dict.keys()]),
                 "quiz": {
                     "info": self.quiz.info,
                     "status": self.quiz.status,

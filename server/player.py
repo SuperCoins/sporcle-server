@@ -1,6 +1,5 @@
-import random
-import string
 import json
+from coolname import generate
 
 
 class Player:
@@ -9,7 +8,7 @@ class Player:
         if name:
             self.name = name
         else:
-            self.name = "".join(random.choice(string.ascii_uppercase) for i in range(4))
+            self.name = generate(2)[0]
         self._isHost = False
         self.room = None
 
