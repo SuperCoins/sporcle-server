@@ -3,8 +3,7 @@ class Quiz:
         self.room = room
         self.info = info
         self.status = "ready"
-        self.scoreboard = {}
-        self.answers = {}
+        self._scoreboard = {}
         self.answer_trie = {}
 
     def update_status(self, status):
@@ -23,10 +22,16 @@ class Quiz:
     def unpause(self):
         self.update_status("in-progress")
 
-    def correct_answer(self, player_name, answer):
-        player_score = self.scoreboard.setdefault(
-            player_name, {"points": 0, "answers": []}
-        )
+    @property
+    def scoreboard(self):
+        return self._scoreboard
+
+    @scoreboard.getter
+    def scoreboard(self):
+        return {player.name: score for player, score in self._scoreboard.items()}
+
+    def correct_answer(self, player, answer):
+        player_score = self._scoreboard.setdefault(player, {"points": 0, "answers": []})
         player_score["points"] += 1
         player_score["answers"].append(answer)
         self.room.send_info()

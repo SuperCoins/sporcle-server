@@ -6,58 +6,73 @@ import random
 import string
 import sys
 import logging
+import json
 
-sys.path.insert(0, 'server')
-import messages
+sys.path.insert(0, "server")
+from player import Player
 from room import Room
 
-logger = logging.getLogger('websockets')
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler())
 
 ROOMS = {}
+PLAYERS = {}
+
+
+class LoggerAdapter(logging.LoggerAdapter):
+    def process(self, msg, kwargs):
+        try:
+            websocket = kwargs["extra"]["websocket"]
+        except KeyError:
+            return msg, kwargs
+        return f"{websocket.id} {msg}", kwargs
+
+
+logging.basicConfig(
+    format="%(message)s",
+    level=logging.DEBUG,
+)
+logger = LoggerAdapter(logging.getLogger("websockets"), {})
 
 
 async def handler(websocket):
     message = await websocket.recv()
-    event = messages.read(message)
+    event = read(message)
+    player = PLAYERS.setdefault(websocket, Player(websocket, event.get("player", None)))
     if event["type"] == "join room":
-        await join(websocket, event["data"], event.get("player", None))
+        await join(event["data"], player)
     elif event["type"] == "create room":
-        await host(websocket)
+        await host(player)
     else:
-        await messages.error(websocket, "Please create or join a room first")
+        await player.error("Please create or join a room first")
 
 
-async def host(host):
+async def host(player):
+    player.isHost = True
     # TODO Make sure the room doesn't already exist
     room_code = "".join(random.choice(string.ascii_uppercase) for i in range(4))
-    room = Room(room_code, host)
+    room = Room(room_code, player)
     ROOMS[room_code] = room
     try:
         await room.created()
-        await play_host(host, room)
+        await play_host(player, room)
     except Exception as e:
-        await messages.error(host, "Something went wrong: " + e)
+        await player.error("Something went wrong: " + e)
 
 
-async def join(player, room_code, name):
+async def join(room_code, player):
     try:
         room = ROOMS[room_code]
     except KeyError:
-        await messages.error(player, "Room not found.")
+        await player.error("Room not found.")
         return
 
-    if not name:
-        name = "".join(random.choice(string.ascii_uppercase) for i in range(4))
-    await room.add_player(player, name)
+    await room.add_player(player)
     await play(player, room)
 
 
-async def play_host(host, room):
+async def play_host(player, room):
     try:
-        async for message in host:
-            event = messages.read(message)
+        async for message in player.websocket:
+            event = read(message)
             etype = event["type"]
             if etype == "answer response":
                 await room.answer_response(
@@ -68,7 +83,6 @@ async def play_host(host, room):
             elif etype == "quiz info":
                 room.add_quiz(event["data"])
             elif etype == "quiz start":
-                print("quiz", room.quiz)
                 room.quiz.start()
             elif etype == "quiz end":
                 room.quiz.end()
@@ -83,14 +97,18 @@ async def play_host(host, room):
 
 async def play(player, room):
     try:
-        async for message in player:
-            event = messages.read(message)
+        async for message in player.websocket:
+            event = read(message)
             if event["type"] == "submit answer":
                 await room.answer(event["data"], player)
             elif event["type"] == "update name":
-                await room.update_player(player, event["data"])
+                await player.update_name(event["data"])
     finally:
         await room.remove_player(player)
+
+
+def read(message):
+    return json.loads(message)
 
 
 async def main():
@@ -100,7 +118,7 @@ async def main():
     loop.add_signal_handler(signal.SIGTERM, stop.set_result, None)
 
     port = int(os.environ.get("PORT", "8080"))
-    async with websockets.serve(handler, "", port):
+    async with websockets.serve(handler, "", port, logger=logger):
         await stop
 
 
