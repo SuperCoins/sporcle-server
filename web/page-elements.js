@@ -25,13 +25,9 @@ export const quizControls = {
 }
 
 export const playerInputs = {
+    panel: document.querySelector('#inputs-panel'),
     title: document.querySelector('#inputs-title'),
     div: document.querySelector('#inputs-container')
-}
-
-export const players = {
-    div: document.querySelectorAll('.player-div'),
-    input: document.querySelectorAll('.player-div input'),
 }
 
 export const createPlayer = (playerName, room, hostControls = false) => {

@@ -74,6 +74,7 @@ function updatePlayerBox(playerName) {
 function updateRoomCode(code) {
     roomCode = code
     page.room.input.value = roomCode
+    page.playerInputs.panel.hidden = false
 }
 
 function onRoomCode(event) {
