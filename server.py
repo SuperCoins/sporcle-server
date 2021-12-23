@@ -18,7 +18,7 @@ from room import Room
 ROOMS = {}
 PLAYERS = {}
 
-nlp = spacy.load("en")
+nlp = spacy.load("en_core_web_sm")
 profanity_filter = ProfanityFilter(nlps={"en": nlp})
 nlp.add_pipe(profanity_filter.spacy_component, last=True)
 
