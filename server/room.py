@@ -12,7 +12,6 @@ class Room:
         self.quiz = Quiz(self, {})
         # When a quiz is loaded a unique id can be sent so a history of quizes is searched
         self.quiz_history = []
-        self.name_dict = {}
 
     async def created(self):
         await self.host.send({"type": "room created", "data": self.code})
@@ -24,7 +23,6 @@ class Room:
             return
         self.connected.add(player)
         player.room = self
-        self.name_dict[player.name] = player
         await player.send(
             {"type": "room joined", "data": self.code, "player": player.name}
         )
@@ -33,7 +31,6 @@ class Room:
     async def remove_player(self, player):
         player.room = None
         self.connected.remove(player)
-        del self.name_dict[player.name]
         self.send_info()
 
     def add_quiz(self, quiz_info):
@@ -46,7 +43,7 @@ class Room:
             "type": "room info",
             "data": {
                 "room": {"code": self.code},
-                "players": list([player_name for player_name in self.name_dict.keys()]),
+                "players": list([player.name for player in self.connected if player != self.host]),
                 "quiz": {
                     "info": self.quiz.info,
                     "status": self.quiz.status,
@@ -64,15 +61,17 @@ class Room:
         )
 
     async def answer_response(self, response, answer, player_name):
-        player = self.name_dict[player_name]
-        await player.send(
-            {
-                "type": "answer response",
-                "data": {"answer": answer, "response": response},
-            },
-        )
-        if response == "correct" and self.quiz:
-            self.quiz.correct_answer(player, answer)
+        for player in self.connected:
+            if player.name != player_name:
+                continue
+            await player.send(
+                {
+                    "type": "answer response",
+                    "data": {"answer": answer, "response": response},
+                },
+            )
+            if response == "correct" and self.quiz:
+                self.quiz.correct_answer(player, answer)
 
     def broadcast(self, message):
         websockets.broadcast(
