@@ -5,10 +5,15 @@ import signal
 import random
 import string
 import sys
+import logging
 
 sys.path.insert(0, 'server')
 import messages
 from room import Room
+
+logger = logging.getLogger('websockets')
+logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.StreamHandler())
 
 ROOMS = {}
 
