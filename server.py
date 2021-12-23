@@ -21,9 +21,10 @@ class LoggerAdapter(logging.LoggerAdapter):
     def process(self, msg, kwargs):
         try:
             websocket = kwargs["extra"]["websocket"]
+            player = PLAYERS[websocket]
         except KeyError:
             return msg, kwargs
-        return f"{websocket.id} {msg}", kwargs
+        return f"{player.name:>10} {msg}", kwargs
 
 
 logging.basicConfig(
