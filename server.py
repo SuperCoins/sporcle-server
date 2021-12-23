@@ -7,6 +7,8 @@ import string
 import sys
 import logging
 import json
+import spacy
+from profanity_filter import ProfanityFilter
 
 sys.path.insert(0, "server")
 from player import Player
@@ -15,6 +17,10 @@ from room import Room
 
 ROOMS = {}
 PLAYERS = {}
+
+nlp = spacy.load("en")
+profanity_filter = ProfanityFilter(nlps={"en": nlp})
+nlp.add_pipe(profanity_filter.spacy_component, last=True)
 
 
 class LoggerAdapter(logging.LoggerAdapter):
@@ -53,15 +59,17 @@ async def handler(websocket):
 
 async def host(player):
     player.isHost = True
-    # TODO Make sure the room doesn't already exist
-    room_code = "".join(random.choice(string.ascii_uppercase) for i in range(4))
+    room_code = generate_room_code()
+    if not room_code:
+        await player.error("Failed to generate an appropriate room code... somehow")
+        return
     room = Room(room_code, player)
     ROOMS[room_code] = room
     try:
         await room.created()
         await play_host(player, room)
     except Exception as e:
-        await player.error("Something went wrong creating a room: ", e)
+        await player.error("Something went wrong creating a room: " + e)
 
 
 async def join(room_code, player):
@@ -117,6 +125,14 @@ async def play(player, room):
 
 def read(message):
     return json.loads(message)
+
+
+def generate_room_code():
+    for i in range(20):
+        code = "".join(random.choice(string.ascii_uppercase) for i in range(4))
+        doc = nlp(code)
+        if not doc._.is_profane and not code in ROOMS:
+            return code
 
 
 async def main():
